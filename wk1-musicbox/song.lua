@@ -1,11 +1,16 @@
 shield = require "starter"
 math = require "math"
 
--- seed with current time
-math.randomseed(storm.os.now(storm.os.SHIFT_0))
+local song = {}
 
-shield.LED.start()
-shield.Buzz.start()
+function setup()
+    -- seed with current time
+    math.randomseed(storm.os.now(storm.os.SHIFT_0))
+
+    shield.LED.start()
+    shield.Buzz.start()
+    shield.Button.start()
+end
 
 function generate(length)
    local song = {}
@@ -34,12 +39,9 @@ function play(s)
    end
 end
 
-cord.new(function ()
-    while true do
-       local s = generate(5)
-       play(s)
-       cord.await(storm.os.invokeLater, storm.os.SECOND)
-    end
-end)
+song.setup = setup
+song.generate = generate
+song.play_note = play_note
+song.play = play
 
-cord.enter_loop()
+return song
