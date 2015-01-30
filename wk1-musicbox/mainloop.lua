@@ -2,11 +2,8 @@ shield = require "starter"
 song = require "song"
 buttons = {[1] = "right", [2] = "middle", [3] = "left"}
 function playmusicbox(length)
-    print("entered playmusicbox")
     local mysong = song.generate(length)
-    print("two")
     song.play(mysong)
-    print("one")
     local next_note = 1 -- the index of the note we expect the user to press next
     local correct = true
     local eval_press = function (note)
@@ -25,6 +22,7 @@ function playmusicbox(length)
     button_handlers = {}
     for i = 1, 3 do
         button_handlers[i] = shield.Button.whenever_gap(buttons[i], "FALLING", function ()
+            print("pressed")
             eval_press(i)
         end)
     end
@@ -48,7 +46,6 @@ end
 
 cord.new(function ()
     song.setup()
-    --print("set up")
     while true do
 	    playmusicbox(4)
         cord.await(storm.os.invokeLater, 2 * storm.os.SECOND)

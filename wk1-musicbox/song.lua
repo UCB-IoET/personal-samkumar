@@ -25,7 +25,6 @@ local note_to_period = {[1] = 1 * storm.os.MILLISECOND, [2] = 3 * storm.os.MILLI
 
 -- Plays a note by buzzing and flashing
 function play_note(note)
-   print("playing note")
    shield.Buzz.go(note_to_period[note])
    shield.LED.on(note_to_color[note])
    cord.await(storm.os.invokeLater, 500 * storm.os.MILLISECOND)
