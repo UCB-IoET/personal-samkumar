@@ -26,7 +26,17 @@ function buzz(note)
    storm.os.invokeLater(10 * storm.os.MILLISECOND, function() shield.Buzz.stop() end)
 end
 
+-- function buzz_length(note, length)
+--    Buzz.go(note)
+--    cord.await(storm.os.invokeLater, length * storm.os.millisecond)
+--    Buzz.stop()
+-- end
+
 local note_to_color = {[1]="blue", [2]="green", [3]="red"}
+
+-- function flash_length(note, length)
+--    Led.flash(note_to_color[note], length)
+-- end
 
 -- Wrapper around 
 function flash(note)
@@ -39,6 +49,11 @@ function play_note(note)
    flash(note)
 end
 
+-- function play_note_length(note, length)
+--    flash_length(note, length)
+--    buzz_length(note, length)
+-- end
+
 function play(s, index)
    index = index or 1
    play_note(s[index])
@@ -47,11 +62,24 @@ function play(s, index)
    end
 end
 
---------------------------------------------
-local song = {}
+-- function play_song_var_length(s, length_arr, index)
+--    index = index or 1
+--    play_note_length(s[index])
+--    if index < #s then
+--       storm.os.invokeLater(50 * storm.os.MILLISECOND, function() play_song_var_length(s, length_arr, index + 1) end)
+--    end
+-- end
 
-song.flash = flash
-song.play_note = play_note
-song.generate = generate
-song.play = play
-return song
+--------------------------------------------
+-- local song = {}
+
+-- song.flash = flash
+-- song.play_note = play_note
+-- song.generate = generate
+-- song.play = play
+-- return song
+
+while true do
+   local s = generate(5)
+   play(s)
+end
