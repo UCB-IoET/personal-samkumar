@@ -1,9 +1,12 @@
---shield = require "starter"
+shield = require "starter"
 song = require "song"
-buttons = {[1] = "right", [2] = "middle", [3] = "left"}
+--[[buttons = {[1] = "right", [2] = "middle", [3] = "left"}
 function playmusicbox(length)
+    print("entered playmusicbox")
     local mysong = song.generate(length)
+    print("two")
     song.play(mysong)
+    print("one")
     local next_note = 1 -- the index of the note we expect the user to press next
     local correct = true
     local eval_press = function (note)
@@ -41,13 +44,17 @@ function playmusicbox(length)
         song.play(mysong)
     end
     return correct
-end
+end]]
 
 cord.new(function ()
-    print("started")
     song.setup()
+    --print("set up")
     while true do
-        playmusicbox(4)
+	print("entered loop")
+	local sg = song.generate(4)
+	print("generated")
+	song.play(sg)
+	print("played")
         cord.await(storm.os.invokeLater, 2 * storm.os.SECOND)
     end
 end)
