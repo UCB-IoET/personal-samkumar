@@ -39,10 +39,19 @@ function play_note(note)
    flash(note)
 end
 
+function play(s, index)
+   index = index or 1
+   play_note(s[index])
+   if index < #s then
+      storm.os.invokeLater(50 * storm.os.MILLISECOND, function() play(s, index + 1) end)
+   end
+end
+
 --------------------------------------------
 local song = {}
 
 song.flash = flash
 song.play_note = play_note
 song.generate = generate
+song.play = play
 return song
