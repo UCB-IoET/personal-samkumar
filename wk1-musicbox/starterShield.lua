@@ -151,6 +151,7 @@ end
 -- consider lowering Button.GAP
 Button.GAP = 250
 Button.whenever_gap = function(button, transition, action)
+    print("waiting for gap")
     local pin = storm.io[Button.pins[button]]
     local a = {[0]=nil, [1]=nil}
     a[0] = storm.io.watch_single(storm.io[transition], pin, function ()
@@ -162,6 +163,11 @@ Button.whenever_gap = function(button, transition, action)
             end)
     end)
     return a
+end
+
+Button.whenever = function(button, transition, action)
+    local pin = storm.io[Button.pins[button]]
+    return storm.io.watch_all(storm.io[transition], pin, action)
 end
 
 ----------------------------------------------
