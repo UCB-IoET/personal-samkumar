@@ -1,6 +1,6 @@
 shield = require "starter"
 song = require "song"
---[[buttons = {[1] = "right", [2] = "middle", [3] = "left"}
+buttons = {[1] = "right", [2] = "middle", [3] = "left"}
 function playmusicbox(length)
     print("entered playmusicbox")
     local mysong = song.generate(length)
@@ -44,17 +44,13 @@ function playmusicbox(length)
         song.play(mysong)
     end
     return correct
-end]]
+end
 
 cord.new(function ()
     song.setup()
     --print("set up")
     while true do
-	print("entered loop")
-	local sg = song.generate(4)
-	print("generated")
-	song.play(sg)
-	print("played")
+	    playmusicbox(4)
         cord.await(storm.os.invokeLater, 2 * storm.os.SECOND)
     end
 end)
