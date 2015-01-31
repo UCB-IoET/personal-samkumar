@@ -39,28 +39,9 @@ end
 LED.on = function(color)
    storm.io.set(1,storm.io[LED.pins[color]])
 end
+
 LED.off = function(color)
    storm.io.set(0,storm.io[LED.pins[color]])
-end
-
--- Flash an LED pin for a period of time
---    unspecified duration is default of 10 ms
---    this is dull for green, but bright for read and blue
---    assumes cord.enter_loop() is in effect to schedule filaments
--- COLOR is "blue", "green", "red", or "red2"
--- DURATION is measured in milliseconds
--- Returns the result of calling "invoke later", in case you want to cancel the event that turns of the LED at the end of the flash
-LED.flash=function(color,duration)
-    -- This was essentially given to us in the reading, so nothing new here. --
-    local pin = storm.io[LED.pins[color]] -- I'm guessing that's why we were given the table above
-    local trueDuration = 10
-    if duration then
-        trueDuration = duration
-    end
-    trueDuration = trueDuration * storm.os.MILLISECOND -- I think duration should be specified in milliseconds
-    storm.io.set(1, pin) -- Turn on the LED
-    -- Now, schedule the LED to be turned off after the desired duration --
-    return storm.os.invokeLater(trueDuration, function () storm.io.set(0, pin) end)
 end
 
 ----------------------------------------------
@@ -163,11 +144,6 @@ Button.whenever_gap = function(button, transition, action)
             end)
     end)
     return a
-end
-
-Button.whenever = function(button, transition, action)
-    local pin = storm.io[Button.pins[button]]
-    return storm.io.watch_all(storm.io[transition], pin, action)
 end
 
 ----------------------------------------------
