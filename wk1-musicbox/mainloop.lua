@@ -58,10 +58,10 @@ local eval_press = function (note)
             end)
         else
             storm.os.invokeLater(storm.os.SECOND, function ()
-                shield.Buzz.go(note_to_period[note])
+                shield.Buzz.go(storm.os.MILLISECOND / 2)
                 shield.LED.flash("red", 2000)
                 shield.LED.flash("red2", 2000)
-                storm.os.invokeLater(storm.os.MILLISECOND / 2, 
+                storm.os.invokeLater(storm.os.SECOND * 2, 
                                      function () 
                                         shield.Buzz.stop()
                                      end)
