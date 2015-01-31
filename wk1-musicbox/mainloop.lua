@@ -51,9 +51,21 @@ local eval_press = function (note)
     end
     if next_note == #mysong + 1 then
         if correct then
-            -- print("Won")
             length = length + 1
+            storm.os.invokeLater(storm.os.SECOND, function ()
+                shield.LED.flash("green", 2000)
+                shield.LED.flash("blue", 2000)
+            end)
         else
+            storm.os.invokeLater(storm.os.SECOND, function ()
+                shield.Buzz.go(note_to_period[note])
+                shield.LED.flash("red", 2000)
+                shield.LED.flash("red2", 2000)
+                storm.os.invokeLater(storm.os.MILLISECOND / 2, 
+                                     function () 
+                                        shield.Buzz.stop()
+                                     end)
+            end)
             -- print("Lost")
         end
         -- print("Starting new game: length "..length)

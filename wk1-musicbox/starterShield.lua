@@ -44,6 +44,16 @@ LED.off = function(color)
    storm.io.set(0,storm.io[LED.pins[color]])
 end
 
+LED.flash=function(color,duration)
+   local pin = LED.pins[color] or LED.pins["red2"]
+   duration = duration or 10
+   storm.io.set(1,storm.io[pin])
+   storm.os.invokeLater(duration*storm.os.MILLISECOND,
+			function() 
+			   storm.io.set(0,storm.io[pin]) 
+			end)
+end
+
 ----------------------------------------------
 -- Buzz module
 -- provide basic buzzer functions
