@@ -20,38 +20,29 @@ end
 local note_to_color = {[1]="blue", [2]="green", [3]="red"}
 local note_to_period = {[1] = 1 * storm.os.MILLISECOND, [2] = 3 * storm.os.MILLISECOND, [3] = 7 * storm.os.MILLISECOND}
 
--- Plays a note by buzzing and flashing
-function play_note(note)
-   print("playing note")
-   shield.Buzz.go(note_to_period[note])
-   shield.LED.on(note_to_color[note])
-   print("waiting")
-   cord.await(storm.os.invokeLater, 500 * storm.os.MILLISECOND)
-   print("finished waiting")
-   shield.Buzz.stop()
-   shield.LED.off(note_to_color[note])
-end
-
-function play(s)
-   local i = 1
-   for i = 1, #s do
-      print("about to play note")
-      play_note(s[i])
-      cord.await(storm.os.invokeLater, 400 * storm.os.MILLISECOND)
-   end
-end
-
 local mysong = {}
 local next_note = 1 -- the index of the note we expect the user to press next
 local correct = true
 local game_in_progress = true
 local length = 4
+local finish_game = nil
+local continue_on = false
 local eval_press = function (note)
     local expected_note = mysong[next_note]
     if note == expected_note then
-        cord.new(function() 
-          play_note(note)
-        end)
+        -- cord.new(function() 
+        --   play_note(note)
+        -- end)
+        shield.Buzz.go(note_to_period[note])
+        shield.LED.on(note_to_color[note])
+        -- print("waiting")
+        -- cord.await(storm.os.invokeLater, 500 * storm.os.MILLISECOND)
+        storm.os.invokeLater(500 * storm.os.MILLISECOND, 
+                             function () 
+                                shield.Buzz.stop()
+                                shield.LED.off(note_to_color[note])
+                             end)
+        -- print("finished waiting")
         next_note = next_note + 1
         print(mysong[next_note])
     else
@@ -60,26 +51,29 @@ local eval_press = function (note)
     end
     if next_note == #mysong + 1 then
         if correct then
-            print("Won")
+            -- print("Won")
             length = length + 1
         else
-            print("Lost")
+            -- print("Lost")
         end
-        print("Starting new game: length "..length)
-        game_in_progress = false
+        -- print("Starting new game: length "..length)
+        -- finish_game()
+        continue_on = true
     end
 end
 
-function playmusicbox(length)
+function playmusicbox(length, callback)
+    print("hello")
+    finish_game = callback
     generate(length, mysong)
     local i = 1
     for i = 1, #mysong do
-        shield.Buzz.go(note_to_period[mysong[i]])
+       shield.Buzz.go(note_to_period[mysong[i]])
        shield.LED.on(note_to_color[mysong[i]])
        cord.await(storm.os.invokeLater, 500 * storm.os.MILLISECOND)
        shield.Buzz.stop()
        shield.LED.off(note_to_color[mysong[i]])
-        cord.await(storm.os.invokeLater, 400 * storm.os.MILLISECOND)
+       cord.await(storm.os.invokeLater, 400 * storm.os.MILLISECOND)
     end
     next_note = 1
     correct = true
@@ -98,16 +92,19 @@ setup = nil
 shield.Buzz.start = nil
 shield.LED.start = nil
 shield.Button.start = nil
-cord.new(function ()
-    while true do
-        cord.await(storm.os.invokeLater, 5 * storm.os.SECOND)
-        game_in_progress = true
-        collectgarbage()
-        cord.new(function () playmusicbox(length) end)
-        while game_in_progress do
-            cord.yield()
-        end
+cord.new(function() 
+  while true do
+    print("waiting 5 seconds")
+    cord.await(storm.os.invokeLater, 5 * storm.os.SECOND)
+    print("collecting garbage")
+    collectgarbage()
+    playmusicbox(length)
+    continue_on = false
+    while not continue_on do
+       cord.yield()
     end
+    -- cord.await(playmusicbox, length)
+  end
 end)
 
 cord.enter_loop()
