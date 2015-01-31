@@ -12,9 +12,9 @@ function setup()
     shield.Button.start()
 end
 
-function generate(length)
+function generate(len)
    local song = {}
-   for i = 1, length do
+   for i = 1, len do
       song[i] = math.random(3)
    end
    return song

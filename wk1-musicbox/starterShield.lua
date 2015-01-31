@@ -151,10 +151,10 @@ end
 -- consider lowering Button.GAP
 Button.GAP = 250
 Button.whenever_gap = function(button, transition, action)
-    print("waiting for gap")
     local pin = storm.io[Button.pins[button]]
     local a = {[0]=nil, [1]=nil}
     a[0] = storm.io.watch_single(storm.io[transition], pin, function ()
+        print("pressed")
         action()
         a[1] = storm.os.invokeLater(Button.GAP * storm.os.MILLISECOND, function ()
             local new = Button.whenever_gap(button, transition, action)
