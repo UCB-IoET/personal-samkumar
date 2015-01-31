@@ -57,15 +57,13 @@ local eval_press = function (note)
                 shield.LED.flash("blue", 2000)
             end)
         else
-            storm.os.invokeLater(storm.os.SECOND, function ()
-                shield.Buzz.go(storm.os.MILLISECOND / 2)
-                shield.LED.flash("red", 2000)
-                shield.LED.flash("red2", 2000)
-                storm.os.invokeLater(storm.os.SECOND * 2, 
-                                     function () 
-                                        shield.Buzz.stop()
-                                     end)
-            end)
+            shield.Buzz.go(storm.os.MILLISECOND / 2)
+            shield.LED.flash("red", 2000)
+            shield.LED.flash("red2", 2000)
+            storm.os.invokeLater(storm.os.SECOND * 2, 
+                                 function () 
+                                    shield.Buzz.stop()
+                                 end)
             -- print("Lost")
         end
         -- print("Starting new game: length "..length)
