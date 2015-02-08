@@ -11,8 +11,7 @@ collectgarbage()
 nqcl = NQC:new(50001)
 
 local morse_code = {}
-local num_code = 0
-local got_something = 0
+local curr_letter = morse.MorseToAlpha
 
 shield.LED.start()
 
@@ -22,36 +21,41 @@ shield.Button.start()
 
 
 shield.Button.whenever_gap(3, "FALLING", function() 
-                           num_code = num_code + 1
-                           morse_code[num_code] = false end)
+                           curr_letter = curr_letter[false]
+                           if curr_letter == nil then
+                               curr_letter = morse.MorseToAlpha
+                           end
+                       end)
 
 shield.Button.whenever_gap(2, "FALLING", function() 
-                           num_code = num_code + 1
-                           morse_code[num_code] = true end)
+                           curr_letter = curr_letter[true]
+                           if curr_letter == nil then
+                               curr_letter = morse.MorseToAlpha
+                           end
+                       end)
+                           
+function success(payload, address, port)
+    shield.LED.flash("red")
+    print("Successfully sent!")
+end
+
+function failure()
+    print("Message could not be sent")
+end
+
+function try()
+    shield.LED.flash("green")
+end
 
 shield.Button.whenever_gap(1, "FALLING", function()
-	local curr_table = morse.MorseToAlpha
-    for i = 1, num_code do
-        curr_table = curr_table[morse_code[i]]
-        if curr_table == nil then
-            num_code = 0
-            return
-        end
-    end
-    if curr_table["end"] ~= nil then
-        local letter = curr_table['end']
+    if curr_letter["end"] ~= nil then
+        local letter = curr_letter['end']
         print("LETTER: "..letter)
+        collectgarbage()
         shield.LED.flash("blue")
-        nqcl:sendMessage({["message"] = letter}, "ff02::1", 50004, function (payload, address, port)
-		    shield.LED.flash("red")
-		    print("Successfully sent! Response received: " .. payload.message)
-		end, function ()
-		    print("Message could not be sent")
-		end, function ()
-		    shield.LED.flash("green")
-		end)
+        nqcl:sendMessage({["message"] = letter}, "ff02::1", 50004, success, failure, try)
     end
-    num_code = 0
+    curr_letter = morse.MorseToAlpha
 end)
 
 cord.enter_loop()

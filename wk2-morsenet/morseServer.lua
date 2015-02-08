@@ -15,7 +15,7 @@ server = NQS:new(50004, function (payload, address, ip)
 	    lcd:writeString(payload.message)
 	end)
 	print("Received " .. payload.message)
-	return {["message"] = payload.message .. " + goodbye."}
+	return {}
 end)
 
 cord.enter_loop()
