@@ -10,9 +10,20 @@ cord.new(function ()
 	lcd:setBackColor(255, 255, 255)
 end)
 
+column = 0
+row = 0
 server = NQS:new(50004, function (payload, address, ip)
     cord.new(function ()
 	    lcd:writeString(payload.message)
+	    column = column + 1
+	    if column == 17 then
+	        column = 0
+	        row = 1 - row
+	        lcd:setCursor(row, column)
+	        if row == 0 then
+	            lcd:clear()
+	        end
+	    end
 	end)
 	print("Received " .. payload.message)
 	return {}

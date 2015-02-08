@@ -51,7 +51,6 @@ shield.Button.whenever_gap(1, "FALLING", function()
     if curr_letter["end"] ~= nil then
         local letter = curr_letter['end']
         print("LETTER: "..letter)
-        collectgarbage()
         shield.LED.flash("blue")
         nqcl:sendMessage({["message"] = letter}, "ff02::1", 50004, success, failure, try)
     end
