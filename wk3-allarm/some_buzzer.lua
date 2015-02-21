@@ -4,10 +4,17 @@ advertiser = require "advertiser"
 
 advertiser:new("some_buzzer")
 
-advertiser:addService("buzz_on", "start_buzzer", "starts this buzzer.", function() Buzz.go end)
-advertiser:addService("buzz_off", "stop_buzzer", "stops this buzzer.", function() Buzz.stop end)
+advertiser:addService("set_buzzer", "setBuzzer", "sets this buzzer state.", function() set_buzzer end)
 
 advertiser:advertise_repeatedly(storm.os.SECOND)
+
+function set_buzzer(state)
+	if state then
+		Buzz.go()
+	else
+		Buzz.stop()
+	end
+end
 
 ----------------------------------------------
 -- Buzz module
