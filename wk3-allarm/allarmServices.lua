@@ -5,7 +5,7 @@ Buzzer = require "buzzer"
 d4led = LED:new("D4")
 d6buzzer = Buzzer:new("D6")
 
-adv = Advertiser:new("lightbuzzer")
+adv = Advertiser:new("buzzlightyear")
 
 adv:addService("setLed", "setBool", "D4", function (val)
     if val then
