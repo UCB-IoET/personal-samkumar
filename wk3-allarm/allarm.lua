@@ -73,10 +73,10 @@ function printServices()
 	--print info about discovered services
 	print("Printing services")
 	for ip, payload in pairs(disc.discovered_services) do
-		for id, serv_list in pairs(payload) do
-			print("ID " .. id .. "," .. ip)
-			for i, service in pairs(serv_list) do
-				print("   "	.. i .. ":" .. service)
+		print("ID " .. payload["id"] .. ", " .. ip)
+		for id, service in pairs(payload) do
+			if id ~= "id" then
+				print("   " .. id .. "(" .. service["s"] .. "):" .. service["desc"])
 			end
 		end
 	end
@@ -105,7 +105,7 @@ end
 
 function send_all(dict, arg)
 	for ip, services in pairs(dict) do
-		for service in services do
+		for _, service in pairs(services) do
 			disc:invoke(ip, service, {arg}, nil, nil, nil, function() end)
 		end
 	end
@@ -122,7 +122,11 @@ sec = 20
 show_time()
 storm.os.invokeLater((60 - sec) * storm.os.SECOND, function()
 	min = min + 1
-	show_time()
+	if alarm_hour == hour and alarm_min == min then
+		allarm()
+	elseif mode == 0 then
+		show_time()
+	end
 	storm.os.invokePeriodically(storm.os.MINUTE, function()
 		min = min + 1
 		if alarm_hour == hour and alarm_min == min then
