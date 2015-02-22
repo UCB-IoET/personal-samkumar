@@ -4,7 +4,7 @@ d = require "starterShieldDisplay"
 starter = require "starterShield"
 discoverer = require "discoverer"
 
-d:init()
+d:new()
 
 function found()
 	printServices()
@@ -20,7 +20,7 @@ mode = 0 -- 0 = clock, 1 = set, 2 = ringing
 hour = 0
 min = 0
 starter.Button.start()
-starter.button.whenever(1, "RISING", function() 
+starter.Button.whenever(1, "RISING", function() 
 	if mode == 0 then
 		printServices()
 	elseif mode == 1 then
@@ -32,7 +32,7 @@ starter.button.whenever(1, "RISING", function()
 		allunarm()
 	end
 end)
-starter.button.whenever(2, "FALLING", function() 
+starter.Button.whenever(2, "FALLING", function() 
 	if mode == 0 then
 		if starter.Button.pressed("D11") then
 			changeMode(1)
@@ -42,7 +42,7 @@ starter.button.whenever(2, "FALLING", function()
 		alarm_time = alarm_time - 1
 	end
 end)
-starter.button.whenever(3, "FALLING", function() 
+starter.Button.whenever(3, "FALLING", function() 
 	if mode == 0 then
 		if starter.Button.pressed("D10") then
 			changeMode(1)
