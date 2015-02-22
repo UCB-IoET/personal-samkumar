@@ -20,6 +20,8 @@ button1 = Button:new("D11")
 button2 = Button:new("D10")
 button3 = Button:new("D9")
 
+Button.GAP = 100 * storm.os.MILLISECOND
+
 mode = 0 -- 0 = clock, 1 = set, 2 = ringing
 hour = 0
 min = 0
