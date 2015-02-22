@@ -40,6 +40,7 @@ starter.Button.whenever(2, "FALLING", function()
 		end
 	else
 		alarm_time = alarm_time - 1
+		d:time(alarm_time / 60, alarm_time % 60)
 	end
 end)
 starter.Button.whenever(3, "FALLING", function() 
@@ -50,6 +51,7 @@ starter.Button.whenever(3, "FALLING", function()
 		end
 	else
 		alarm_time = alarm_time + 1
+		d:time(alarm_time / 60, alarm_time % 60)
 	end
 end)
 
@@ -107,9 +109,9 @@ function show_time()
 end
 
 --start clock running
-hour = 0 --replace these three declarations with the first time upon initialization
-min = 0
-sec = 0
+hour = 9 --replace these three declarations with the first time upon initialization
+min = 10
+sec = 20
 show_time()
 storm.os.invokeLater((60 - sec) * storm.os.SECOND, function()
 	min = min + 1
