@@ -21,15 +21,13 @@ button2 = Button:new("D10")
 button3 = Button:new("D9")
 
 mode = 0 -- 0 = clock, 1 = set, 2 = ringing
-hour = 0
-min = 0
 button3:whenever_debounced("RISING", function() 
 	if mode == 0 then
 		printServices()
 	elseif mode == 1 then
 		changeMode(0)
-		time_until = alarm_time - (hour * 60 + min)
-		cur_alarm = storm.os.invokeLater(time_until * storm.os.MINUTE, function() allarm() end)
+		alarm_hour = alarm_time / 60
+		alarm_min = alarm_time % 60
 	else
 		changeMode(0)
 		allunarm()
@@ -72,7 +70,6 @@ end
 function printServices()
 	--print info about discovered services
 	print("Printing services")
-	print("mode = " .. mode)
 	for ip, payload in pairs(disc.discovered_services) do
 		for id, serv_list in pairs(payload) do
 			print("ID " .. id .. "," .. ip)
@@ -90,7 +87,9 @@ function allarm()
 	buzz_services = disc:resolve("setBuzzer")
 	send_all(led_services, true)
 	send_all(buzz_services, true)
-	d:num(8888)
+	if mode == 0 then
+		d:num(8888)
+	end
 end
 
 function allunarm()
@@ -124,7 +123,9 @@ storm.os.invokeLater((60 - sec) * storm.os.SECOND, function()
 	show_time()
 	storm.os.invokePeriodically(storm.os.MINUTE, function()
 		min = min + 1
-		if mode == 0 then
+		if alarm_hour == hour and alarm_min == min then
+			allarm()
+		elseif mode == 0 then
 			show_time()
 		end
 	end)
