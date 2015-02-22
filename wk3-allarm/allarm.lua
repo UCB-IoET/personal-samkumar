@@ -34,7 +34,7 @@ starter.Button.whenever(1, "RISING", function()
 end)
 starter.Button.whenever(2, "FALLING", function() 
 	if mode == 0 then
-		if starter.Button.pressed(3) then
+		if starter.Button.pressed(3) == 1 then
 			changeMode(1)
 			alarm_time = hour * 60 + min;
 		end
@@ -45,7 +45,7 @@ starter.Button.whenever(2, "FALLING", function()
 end)
 starter.Button.whenever(3, "FALLING", function() 
 	if mode == 0 then
-		if starter.Button.pressed(2) then
+		if starter.Button.pressed(2) == 1 then
 			changeMode(1)
 			alarm_time = hour * 60 + min;
 		end
@@ -67,6 +67,7 @@ end
 function printServices()
 	--print info about discovered services
 	print("Printing services")
+	print("mode = " .. mode)
 	for ip, payload in pairs(discoverer.discovered_services) do
 		for id, serv_list in pairs(payload) do
 			print("ID " .. id .. "," .. ip)
