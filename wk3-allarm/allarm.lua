@@ -20,6 +20,8 @@ button1 = Button:new("D11")
 button2 = Button:new("D10")
 button3 = Button:new("D9")
 
+Button.GAP = 100 * storm.os.MILLISECOND
+
 mode = 0 -- 0 = clock, 1 = set, 2 = ringing
 button3:whenever_debounced("RISING", function() 
 	if mode == 0 then
@@ -34,9 +36,9 @@ button3:whenever_debounced("RISING", function()
 	end
 end)
 
-button2:whenever_debounced("FALLING", function() 
+button1:whenever_debounced("FALLING", function() 
 	if mode == 0 then
-		if starter.Button.pressed(3) == 1 then
+		if button2:pressed() == 1 then
 			changeMode(1)
 			alarm_time = hour * 60 + min;
 		end
@@ -46,9 +48,9 @@ button2:whenever_debounced("FALLING", function()
 	end
 end)
 
-button1:whenever_debounced("FALLING", function() 
+button2:whenever_debounced("FALLING", function() 
 	if mode == 0 then
-		if starter.Button.pressed(2) == 1 then
+		if button1:pressed() == 1 then
 			changeMode(1)
 			alarm_time = hour * 60 + min;
 		end
