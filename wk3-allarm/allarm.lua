@@ -34,7 +34,7 @@ starter.Button.whenever(1, "RISING", function()
 end)
 starter.Button.whenever(2, "FALLING", function() 
 	if mode == 0 then
-		if starter.Button.pressed("D11") then
+		if starter.Button.pressed(3) then
 			changeMode(1)
 			alarm_time = hour * 60 + min;
 		end
@@ -44,7 +44,7 @@ starter.Button.whenever(2, "FALLING", function()
 end)
 starter.Button.whenever(3, "FALLING", function() 
 	if mode == 0 then
-		if starter.Button.pressed("D10") then
+		if starter.Button.pressed(2) then
 			changeMode(1)
 			alarm_time = hour * 60 + min;
 		end
@@ -80,22 +80,24 @@ function allarm()
 	changeMode(2)
 	led_services = disc:resolve("setLed")
 	buzz_services = disc:resolve("setBuzzer")
-	send_all(true)
+	send_all(led_services, true)
+	send_all(buzz_services, true)
 	d:num(8888)
 end
 
 function allunarm()
 	changeMode(0)
-	send_all(false)
+	send_all(led_services, false)
+	send_all(buzz_services, false)
 	led_services = nil
 	buzz_services = nil
 	show_time()
 end	
 
-function send_all(arg)
-	for ip, services in pairs(led_services) do
+function send_all(dict, arg)
+	for ip, services in pairs(dict) do
 		for service in services do
-			disc:invoke(ip, service, {arg}, function() end)
+			disc:invoke(ip, service, {arg}, nil, nil, nil, function() end)
 		end
 	end
 end
