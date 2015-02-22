@@ -1,8 +1,8 @@
 require "storm"
 require "cord"
 d = require "starterShieldDisplay"
-starter = require "starterShield"
-discoverer = require "discoverer"
+Button = require "button"
+Discoverer = require "discoverer"
 
 d:new()
 
@@ -14,13 +14,16 @@ function lost()
 	printServices()
 end
 
-disc = discoverer:new(found, lost)
+disc = Discoverer:new(found, lost)
+
+button1 = Button:new("D11")
+button2 = Button:new("D10")
+button3 = Button:new("D9")
 
 mode = 0 -- 0 = clock, 1 = set, 2 = ringing
 hour = 0
 min = 0
-starter.Button.start()
-starter.Button.whenever(1, "RISING", function() 
+button3:whenever_debounced("RISING", function() 
 	if mode == 0 then
 		printServices()
 	elseif mode == 1 then
@@ -32,7 +35,8 @@ starter.Button.whenever(1, "RISING", function()
 		allunarm()
 	end
 end)
-starter.Button.whenever(2, "FALLING", function() 
+
+button2:whenever_debounced("FALLING", function() 
 	if mode == 0 then
 		if starter.Button.pressed(3) == 1 then
 			changeMode(1)
@@ -43,7 +47,8 @@ starter.Button.whenever(2, "FALLING", function()
 		d:time(alarm_time / 60, alarm_time % 60)
 	end
 end)
-starter.Button.whenever(3, "FALLING", function() 
+
+button1:whenever_debounced("FALLING", function() 
 	if mode == 0 then
 		if starter.Button.pressed(2) == 1 then
 			changeMode(1)
@@ -68,7 +73,7 @@ function printServices()
 	--print info about discovered services
 	print("Printing services")
 	print("mode = " .. mode)
-	for ip, payload in pairs(discoverer.discovered_services) do
+	for ip, payload in pairs(disc.discovered_services) do
 		for id, serv_list in pairs(payload) do
 			print("ID " .. id .. "," .. ip)
 			for i, service in pairs(serv_list) do
