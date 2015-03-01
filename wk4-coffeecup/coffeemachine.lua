@@ -25,20 +25,25 @@ cord.new(function ()
 	    cord.await(SVCD.init, "THE NETWORKED COFFEE MAKER")
 	    SVCD.add_service(COFFEE_SERVICE)
 	    SVCD.add_attribute(COFFEE_SERVICE, MKCOFFEE_ATTR, function (payload, source_ip, source_port)
-				  local args = storm.array.fromstr(payload)
-				  reset()
-				  local time
-				  if args:get_length() < 1 then
-				     time = 64
-				  else
-				     time = args:get(1)
-				  end
-				  print("making coffee " .. time .. "...")
-				  button:flash(1, 10000 + (time * 100))
+				  cord.new (function ()
+					       local args = storm.array.fromstr(payload)
+					       reset()
+					       local time
+					       if false and args:get_length() < 1 then
+						  time = 64
+					       else
+						  time = args:get(1)
+					       end
+					       print("making coffee " .. time .. "...")
+					       button:on()
+					       cord.await(storm.os.invokeLater, 10 * storm.os.SECOND + (time * 100) * storm.os.MILLISECOND)
+					       button:off()
+					       print("finished making coffee")
+					    end)
 				  			      end)
 	    SVCD.add_attribute(COFFEE_SERVICE, CLNSELF_ATTR, function (payload, source_ip, source_port)
-				  reset()
 				  cord.new(function ()
+					      reset()
 					      local i
 					      for i = 1, 3 do
 						 button:on()
@@ -46,6 +51,7 @@ cord.new(function ()
 						 button:off()
 						 cord.await(storm.os.invokeLater, 300 * storm.os.MILLISECOND)
 					      end
+					      print("cleaning coffee machine")
 					   end)
 							      end)
 	    --[[while true do
