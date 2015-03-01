@@ -19,6 +19,7 @@ function reset()
    button:on()
    cord.await(storm.os.invokeLater, 300 * storm.os.MILLISECOND)
    button:off()
+   cord.await(storm.os.invokeLater, 20 * storm.os.SECOND) -- to warm up
 end
 
 cord.new(function ()
@@ -36,7 +37,7 @@ cord.new(function ()
 					       end
 					       print("making coffee " .. time .. "...")
 					       button:on()
-					       cord.await(storm.os.invokeLater, 10 * storm.os.SECOND + (time * 100) * storm.os.MILLISECOND)
+					       cord.await(storm.os.invokeLater, 20 * storm.os.SECOND + (time * 10) * storm.os.MILLISECOND)
 					       button:off()
 					       print("finished making coffee")
 					    end)
