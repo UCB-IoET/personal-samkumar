@@ -4,21 +4,40 @@ require "svcd"
 
 -- Actuate the relay like an LED
 button = LED:new("D8")
+power = LED:new("D7")
 
 COFFEE_SERVICE = 0x3004
 MKCOFFEE_ATTR = 0x4C0F
 CLNSELF_ATTR = 0x4CAF
 
+function reset()
+   print("resetting coffee machine...")
+   power:on() -- cuts power
+   cord.await(storm.os.invokeLater, 5 * storm.os.SECOND)
+   power:off() -- turns on power
+   cord.await(storm.os.invokeLater, 5 * storm.os.SECOND)
+   button:on()
+   cord.await(storm.os.invokeLater, 300 * storm.os.MILLISECOND)
+   button:off()
+end
+
 cord.new(function ()
-	    cord.await(SVCD.init, "THE ULTRA-EPIC COFFEE MAKER")
+	    cord.await(SVCD.init, "THE NETWORKED COFFEE MAKER")
 	    SVCD.add_service(COFFEE_SERVICE)
 	    SVCD.add_attribute(COFFEE_SERVICE, MKCOFFEE_ATTR, function (payload, source_ip, source_port)
-				  args = storm.array.fromstr(payload)                  
-				  print("making coffee " .. args:get(1))
-				  button:flash(1, 10000 + (args:get(1) * 100))
-				  print("finished")
-							      end)
+				  local args = storm.array.fromstr(payload)
+				  reset()
+				  local time
+				  if args:get_length() < 1 then
+				     time = 64
+				  else
+				     time = args:get(1)
+				  end
+				  print("making coffee " .. time .. "...")
+				  button:flash(1, 10000 + (time * 100))
+				  			      end)
 	    SVCD.add_attribute(COFFEE_SERVICE, CLNSELF_ATTR, function (payload, source_ip, source_port)
+				  reset()
 				  cord.new(function ()
 					      local i
 					      for i = 1, 3 do
