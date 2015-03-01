@@ -12,9 +12,9 @@ CLNSELF_ATTR = 0x4CAF
 
 function reset()
    print("resetting coffee machine...")
-   power:on() -- cuts power
+   power:off() -- cuts power
    cord.await(storm.os.invokeLater, 5 * storm.os.SECOND)
-   power:off() -- turns on power
+   power:on() -- turns on power
    cord.await(storm.os.invokeLater, 5 * storm.os.SECOND)
    button:on()
    cord.await(storm.os.invokeLater, 300 * storm.os.MILLISECOND)
