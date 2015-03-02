@@ -29,15 +29,10 @@ cord.new(function ()
 				  cord.new (function ()
 					       local args = storm.array.fromstr(payload)
 					       reset()
-					       local time
-					       if false and args:get_length() < 1 then
-						  time = 64
-					       else
-						  time = args:get(1)
-					       end
+					       local time = args:get_as(storm.array.UINT16, 0)
 					       print("making coffee " .. time .. "...")
 					       button:on()
-					       cord.await(storm.os.invokeLater, 20 * storm.os.SECOND + (time * 10) * storm.os.MILLISECOND)
+					       cord.await(storm.os.invokeLater, 17 * storm.os.SECOND + (time * 10) * storm.os.MILLISECOND)
 					       button:off()
 					       print("finished making coffee")
 					    end)
