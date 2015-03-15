@@ -1,3 +1,6 @@
+#define PA_OFFSET 0x000 // GPIO Port 0
+#define PB_OFFSET 0x200 // GPIO Port 1
+
 #define GPIO_BASE 0x400E1000
 #define GPIO_ENABLE_SET 0x004
 #define GPIO_ENABLE_CLEAR 0x008
@@ -23,8 +26,43 @@
 #define ON 1
 #define TOGGLE 2
 
+#define FAN_CONTROLLER_ADDR 0x40
+#define FAN_CONTROLLER_IODIR_ADDR 0x00
+#define FAN_CONTROLLER_GPIO_ADDR 0x09
+
+#define LOW 1
+#define MEDIUM 2
+#define HIGH 3
+#define MAX 4
+
+const uint32_t heaters[] = {STORM_GP12, STORM_PWM0};
+
+volatile uint32_t* const gpio0_enable_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_ENABLE_SET);
+volatile uint32_t* const gpio0_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_ENABLE_CLEAR);
+volatile uint32_t* const gpio0_output_enable_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_OUTPUT_ENABLE_SET);
+volatile uint32_t* const gpio0_output_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_OUTPUT_ENABLE_CLEAR);
+volatile uint32_t* const gpio0_output_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_OUTPUT_SET);
+volatile uint32_t* const gpio0_output_clear = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_OUTPUT_CLEAR);
+volatile uint32_t* const gpio0_output_toggle = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_OUTPUT_TOGGLE);
+
+
+volatile uint32_t* const gpio1_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_SET);
+volatile uint32_t* const gpio1_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_CLEAR);
+volatile uint32_t* const gpio1_output_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_ENABLE_SET);
+volatile uint32_t* const gpio1_output_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_ENABLE_CLEAR);
+volatile uint32_t* const gpio1_output_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_SET);
+volatile uint32_t* const gpio1_output_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_CLEAR);
+volatile uint32_t* const gpio1_output_toggle = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_TOGGLE);
+volatile uint32_t* const gpio1_schmitt_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_SCHMITT_ENABLE_SET);
+volatile uint32_t* const gpio1_schmitt_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_SCHMITT_ENABLE_CLEAR);
+volatile const uint32_t* const gpio1_pin_value = (volatile const uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_PIN_VALUE);
+
+
 int set_heater_mode(lua_State* L);
 int set_heater_state(lua_State* L);
+
+int set_fan_mode(lua_State* L);
+int set_fan_state(lua_State* L);
 
 #define CHAIRCONTROL_SYMBOLS \
     { LSTRKEY( "BOTTOM_HEATER" ), LNUMVAL( BOTTOM_HEATER ) }, \
@@ -34,5 +72,13 @@ int set_heater_state(lua_State* L);
     { LSTRKEY( "OFF" ), LNUMVAL( OFF ) }, \
     { LSTRKEY( "ON" ), LNUMVAL( ON ) }, \
     { LSTRKEY( "TOGGLE" ), LNUMVAL( TOGGLE ) }, \
+    { LSTRKEY( "LOW" ), LNUMVAL( LOW ) }, \
+    { LSTRKEY( "MEDIUM" ), LNUMVAL( MEDIUM ) }, \
+    { LSTRKEY( "HIGH" ), LNUMVAL( HIGH ) }, \
+    { LSTRKEY( "MAX" ), LNUMVAL( MAX ) }, \
     { LSTRKEY( "set_heater_mode" ), LFUNCVAL( set_heater_mode ) }, \
-    { LSTRKEY( "set_heater_state" ), LFUNCVAL( set_heater_state ) },
+    { LSTRKEY( "set_heater_state" ), LFUNCVAL( set_heater_state ) }, \
+    { LSTRKEY( "set_fan_mode" ), LFUNCVAL( set_fan_mode ) }, \
+    { LSTRKEY( "set_fan_state" ), LFUNCVAL( set_fan_state ) }, \
+    { LSTRKEY( "write_register" ), LFUNCVAL( lua_write_register ) }, \
+    { LSTRKEY( "read_register" ), LFUNCVAL( lua_read_register ) },

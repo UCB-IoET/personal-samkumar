@@ -1,18 +1,6 @@
-#include "chaircontrol.h"
 #include "i2cchair.h"
 
-volatile uint32_t* const gpio1_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_SET);
-volatile uint32_t* const gpio1_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_CLEAR);
-volatile uint32_t* const gpio1_output_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_ENABLE_SET);
-volatile uint32_t* const gpio1_output_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_ENABLE_CLEAR);
-volatile uint32_t* const gpio1_output_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_SET);
-volatile uint32_t* const gpio1_output_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_CLEAR);
-volatile uint32_t* const gpio1_output_toggle = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_TOGGLE);
-volatile uint32_t* const gpio1_schmitt_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_SCHMITT_ENABLE_SET);
-volatile uint32_t* const gpio1_schmitt_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_SCHMITT_ENABLE_CLEAR);
-volatile const uint32_t* const gpio1_pin_value = (volatile const uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_PIN_VALUE);
-
-// Based on code from Wikipedia
+// Based largely on code from Wikipedia
 
 int I2C_delay() {
     volatile int v = 0;
@@ -64,8 +52,7 @@ void i2c_start_cond(void) {
 	I2C_delay();
     }
     if (read_SDA() == 0) {
-        printf("Read SDA returned 0\n");
-	arbitration_lost();
+        arbitration_lost();
 	return;
     }
     // SCL is high, set SDA from 1 to 0.
@@ -132,9 +119,7 @@ int i2c_read_bit(void) {
 }
 
 // Write a byte to I2C bus. Return 0 if ack by the slave.
-int i2c_write_byte(int send_start,
-                    int send_stop,
-                    uint8_t byte) {
+int i2c_write_byte(int send_start, int send_stop, uint8_t byte) {
     unsigned bit;
     int nack;
     if (send_start) {
@@ -165,68 +150,9 @@ uint8_t i2c_read_byte(int nack, int send_stop) {
     return byte;
 }
 
-/** Writes BYTE to the fan controller at the specifed REGISTER_ADDR. */
-int write_register(uint8_t register_addr, uint8_t byte) {
-    return i2c_write_byte(1, 0, FAN_CONTROLLER_ADDR)
-	|| i2c_write_byte(0, 0, register_addr)
-	|| i2c_write_byte(0, 1, byte);
-}
-
-/** Reads BYTE from the fan controller at the specified REGISTER_ADDR.
-    Returns -1 upon error. */
-int16_t read_register(uint8_t register_addr) {
-    if (i2c_write_byte(1, 0, FAN_CONTROLLER_ADDR)
-	|| i2c_write_byte(0, 0, register_addr)) {
-	return -1;
-    }
-    return (int16_t) i2c_read_byte(1, 1);
-}
-
-
 // Wrapper functions for Lua
 
-void enable_fans(lua_State* L) {
-    *gpio1_enable_set = SDA;
-    *gpio1_enable_set = SCL;
-    write_register(FAN_CONTROLLER_IODIR_ADDR, 0b10001000);
-}
-
-void disable_fans(lua_State* L) {
-    *gpio1_enable_clear = SDA;
-    *gpio1_enable_clear = SCL;
-    write_register(FAN_CONTROLLER_IODIR_ADDR, 0b11111111);
-}
-
-/* storm.n.set_fan_state(state)
-   state is in {storm.n.OFF, storm.n.LOW, storm.n.MEDIUM, storm.n.HIGH, storm.n.MAX}
-   Fans must be enabled first. */
-int set_fan_state(lua_State* L) {
-    int state = luaL_checkint(L, 1);
-    int result;
-    switch(state) {
-    case OFF:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
-	break;
-    case LOW:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00100010);
-	break;
-    case MEDIUM:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00010001);
-	break;
-    case HIGH:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00110011);
-	break;
-    case MAX:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b01000100);
-	break;
-    default:
-	return 0;
-    }
-    lua_pushnumber(L, result);
-    return 1;
-}
-
-int read_chair_byte(lua_State* L) {
+int lua_i2c_read_byte(lua_State* L) {
     int nack = luaL_checkint(L, 1);
     int send_stop = luaL_checkint(L, 2);
     int result = (int) i2c_read_byte(nack, send_stop);
@@ -234,7 +160,7 @@ int read_chair_byte(lua_State* L) {
     return 1;
 }
 
-int write_chair_byte(lua_State* L) {
+int lua_i2c_write_byte(lua_State* L) {
     int send_start = luaL_checkint(L, 1);
     int send_stop = luaL_checkint(L, 2);
     uint8_t byte = (uint8_t) luaL_checkint(L, 3);
@@ -242,8 +168,6 @@ int write_chair_byte(lua_State* L) {
     lua_pushnumber(L, nack);
     return 1;
 }
-
-
 
 int lua_read_SDA(lua_State* L) {
     int sda = read_SDA();
@@ -282,17 +206,3 @@ int lua_read_pins(lua_State* L) {
     return 1;
 }
 
-int lua_write_register(lua_State* L) {
-    int reg = luaL_checkint(L, 1);
-    int byte = luaL_checkint(L, 2);
-    int ret = write_register((uint8_t) reg, (uint8_t) byte);
-    lua_pushnumber(L, ret);
-    return 1;
-}
-
-int lua_read_register(lua_State* L) {
-    int reg = luaL_checkint(L, 1);
-    int16_t ret = read_register((uint8_t) reg);
-    lua_pushnumber(L, ret);
-    return 1;
-}
