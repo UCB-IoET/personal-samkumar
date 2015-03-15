@@ -6,6 +6,9 @@
 #define GPIO_OUTPUT_SET 0x054
 #define GPIO_OUTPUT_CLEAR 0x058
 #define GPIO_OUTPUT_TOGGLE 0x05C
+#define GPIO_PULLUP_SET 0x074
+#define GPIO_PULLUP_CLEAR 0x078
+#define GPIO_PIN_VALUE 0x060
 
 #define STORM_GP12 0x00001000 // PA12 on microcontroller
 #define STORM_PWM0 0x00000100 // PA08 on microcontroller
