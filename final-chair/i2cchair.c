@@ -15,8 +15,8 @@ volatile uint32_t* const gpio1_output_enable_clear = (volatile uint32_t* const) 
 volatile uint32_t* const gpio1_output_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_SET);
 volatile uint32_t* const gpio1_output_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_CLEAR);
 volatile uint32_t* const gpio1_output_toggle = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_OUTPUT_TOGGLE);
-volatile uint32_t* const gpio1_pullup_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_PULLUP_SET);
-volatile uint32_t* const gpio1_pullup_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_PULLUP_CLEAR);
+volatile uint32_t* const gpio1_schmitt_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_SCHMITT_ENABLE_SET);
+volatile uint32_t* const gpio1_schmitt_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_SCHMITT_ENABLE_CLEAR);
 volatile const uint32_t* const gpio1_pin_value = (volatile const uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_PIN_VALUE);
 
 
@@ -43,24 +43,24 @@ int I2C_delay() {
 
 int read_SCL() {
     *gpio1_output_enable_clear = SCL;
-    *gpio1_pullup_clear = SCL;
+    *gpio1_schmitt_enable_set = SCL;
     return (int) ((SCL & *gpio1_pin_value) >> SCL_BIT);
 }
 
 int read_SDA() {
     *gpio1_output_enable_clear = SDA;
-    *gpio1_pullup_clear = SDA;
+    *gpio1_schmitt_enable_set = SDA;
     return (int) ((SDA & *gpio1_pin_value) >> SDA_BIT);
 }
 
 void clear_SCL() {
-    *gpio1_pullup_clear = SCL;
+    *gpio1_schmitt_enable_clear = SCL;
     *gpio1_output_enable_set = SCL;
     *gpio1_output_clear = SCL;
 }
 
 void clear_SDA() {
-    *gpio1_pullup_clear = SDA;
+    *gpio1_schmitt_enable_clear = SDA;
     *gpio1_output_enable_set = SDA;
     *gpio1_output_clear = SDA;
 }
