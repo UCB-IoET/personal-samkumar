@@ -15,6 +15,8 @@
 
 #define STORM_GP12 0x00001000 // PA12 on microcontroller
 #define STORM_PWM0 0x00000100 // PA08 on microcontroller
+#define STORM_OCC 0x00000040 // INT1 -> PA06
+#define OCC_BIT 7
 
 #define BOTTOM_HEATER 0 // storm.n.BOTTOM_HEATER
 #define BACK_HEATER 1 // storm.n.BACK_HEATER
@@ -45,6 +47,11 @@ volatile uint32_t* const gpio0_output_set = (volatile uint32_t* const) (GPIO_BAS
 volatile uint32_t* const gpio0_output_clear = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_OUTPUT_CLEAR);
 volatile uint32_t* const gpio0_output_toggle = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_OUTPUT_TOGGLE);
 
+//used for occupancy detection
+volatile uint32_t * const gpio0_enable_read = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET);
+volatile const uint32_t* const gpio0_pin_value = (volatile const uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_PIN_VALUE);
+volatile uint32_t* const gpio0_schmitt_enable_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_SCHMITT_ENABLE_SET);
+volatile uint32_t* const gpio0_schmitt_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_SCHMITT_ENABLE_CLEAR);
 
 volatile uint32_t* const gpio1_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_SET);
 volatile uint32_t* const gpio1_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_CLEAR);
@@ -64,6 +71,8 @@ int set_heater_state(lua_State* L);
 int set_fan_mode(lua_State* L);
 int set_fan_state(lua_State* L);
 
+int check_occupancy(lua_State* L);
+
 #define CHAIRCONTROL_SYMBOLS \
     { LSTRKEY( "BOTTOM_HEATER" ), LNUMVAL( BOTTOM_HEATER ) }, \
     { LSTRKEY( "BACK_HEATER" ), LNUMVAL( BACK_HEATER ) }, \
@@ -81,4 +90,5 @@ int set_fan_state(lua_State* L);
     { LSTRKEY( "set_fan_mode" ), LFUNCVAL( set_fan_mode ) }, \
     { LSTRKEY( "set_fan_state" ), LFUNCVAL( set_fan_state ) }, \
     { LSTRKEY( "write_register" ), LFUNCVAL( lua_write_register ) }, \
-    { LSTRKEY( "read_register" ), LFUNCVAL( lua_read_register ) },
+    { LSTRKEY( "read_register" ), LFUNCVAL( lua_read_register ) }, \
+    { LSTRKEY( "check_occupancy" ), LFUNCVAL( check_occupancy ) },

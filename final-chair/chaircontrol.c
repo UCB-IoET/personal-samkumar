@@ -1,6 +1,14 @@
 #include "chaircontrol.h"
 #include "i2cchair.c"
 
+int check_occupancy(lua_State* L) {
+    uint32_t occ_pin = STORM_OCC;
+    *gpio0_output_enable_clear = occ_pin;
+    *gpio0_schmitt_enable_set = occ_pin;
+    lua_pushnumber(L, ((occ_pin & *gpio0_pin_value) >> OCC_BIT));
+    return 1;
+}
+
 /* storm.n.set_heater_mode(heater, mode)
    heater is in {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
    mode is in {storm.n.ENABLE, storm.n.DISABLE} */
