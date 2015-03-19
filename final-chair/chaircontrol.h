@@ -12,11 +12,13 @@
 #define GPIO_SCHMITT_ENABLE_SET 0x164
 #define GPIO_SCHMITT_ENABLE_CLEAR 0x168
 #define GPIO_PIN_VALUE 0x060
+#define GPIO_PULLUP_ENABLE_SET 0x074
+#define GPIO_PULLUP_ENABLE_CLEAR 0x078
 
 #define STORM_GP12 0x00001000 // PA12 on microcontroller
 #define STORM_PWM0 0x00000100 // PA08 on microcontroller
 #define STORM_OCC 0x00000040 // INT1 -> PA06
-#define OCC_BIT 7
+#define OCC_BIT 6
 
 #define BOTTOM_HEATER 0 // storm.n.BOTTOM_HEATER
 #define BACK_HEATER 1 // storm.n.BACK_HEATER
@@ -52,6 +54,8 @@ volatile uint32_t * const gpio0_enable_read = (volatile uint32_t* const) (GPIO_B
 volatile const uint32_t* const gpio0_pin_value = (volatile const uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_PIN_VALUE);
 volatile uint32_t* const gpio0_schmitt_enable_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_SCHMITT_ENABLE_SET);
 volatile uint32_t* const gpio0_schmitt_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_SCHMITT_ENABLE_CLEAR);
+volatile uint32_t* const gpio0_pullup_enable_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_PULLUP_ENABLE_SET);
+volatile uint32_t* const gpio0_pullup_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_PULLUP_ENABLE_CLEAR);
 
 volatile uint32_t* const gpio1_enable_set = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_SET);
 volatile uint32_t* const gpio1_enable_clear = (volatile uint32_t* const) (GPIO_BASE + PB_OFFSET + GPIO_ENABLE_CLEAR);
@@ -71,6 +75,7 @@ int set_heater_state(lua_State* L);
 int set_fan_mode(lua_State* L);
 int set_fan_state(lua_State* L);
 
+int set_occupancy_mode(lua_State* L);
 int check_occupancy(lua_State* L);
 
 #define CHAIRCONTROL_SYMBOLS \
@@ -91,4 +96,5 @@ int check_occupancy(lua_State* L);
     { LSTRKEY( "set_fan_state" ), LFUNCVAL( set_fan_state ) }, \
     { LSTRKEY( "write_register" ), LFUNCVAL( lua_write_register ) }, \
     { LSTRKEY( "read_register" ), LFUNCVAL( lua_read_register ) }, \
-    { LSTRKEY( "check_occupancy" ), LFUNCVAL( check_occupancy ) },
+    { LSTRKEY( "check_occupancy" ), LFUNCVAL( check_occupancy ) }, \
+    { LSTRKEY( "set_occupancy_mode" ), LFUNCVAL( set_occupancy_mode ) },

@@ -1,12 +1,36 @@
 #include "chaircontrol.h"
 #include "i2cchair.c"
 
+/* storm.n.check_occupancy()
+    return bool if someone is in the seat */
 int check_occupancy(lua_State* L) {
     uint32_t occ_pin = STORM_OCC;
-    *gpio0_output_enable_clear = occ_pin;
-    *gpio0_schmitt_enable_set = occ_pin;
-    lua_pushnumber(L, ((occ_pin & *gpio0_pin_value) >> OCC_BIT));
+    uint32_t reading = (occ_pin & *gpio0_pin_value) >> OCC_BIT;
+    lua_pushboolean(L, reading^1); // reading is 0 when shorted (someone is sitting in chair)
     return 1;
+}
+
+/* storm.n.set_occupancy_mode(mode)
+   heater is in {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
+   mode is in {storm.n.ENABLE, storm.n.DISABLE} */
+int set_occupancy_mode(lua_State* L) {
+   uint32_t occ_pin = STORM_OCC;
+   int mode = luaL_checkint(L, 1);
+
+    switch(mode) {
+    case DISABLE:
+    *gpio0_enable_clear = occ_pin;
+    *gpio0_pullup_enable_clear = occ_pin;
+    *gpio0_schmitt_enable_clear = occ_pin;
+    break;
+    case ENABLE:
+    *gpio0_enable_set = occ_pin;
+    *gpio0_pullup_enable_set = occ_pin;
+    *gpio0_schmitt_enable_set = occ_pin;
+    break;
+    }
+
+    return 0;
 }
 
 /* storm.n.set_heater_mode(heater, mode)
