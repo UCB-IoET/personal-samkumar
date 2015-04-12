@@ -1,3 +1,5 @@
+-- RUNS ON PECS CHAIR BOARD
+
 require "cord"
 RNQS = require "rnqServer"
 
@@ -5,6 +7,10 @@ storm.n.set_heater_mode(storm.n.BOTTOM_HEATER, storm.n.ENABLE)
 storm.n.set_heater_mode(storm.n.BACK_HEATER, storm.n.ENABLE)
 storm.n.set_fan_mode(storm.n.ENABLE)
 storm.n.set_occupancy_mode(storm.n.ENABLE)
+
+storm.n.set_heater_state(storm.n.BOTTOM_HEATER, storm.n.OFF)
+storm.n.set_heater_state(storm.n.BACK_HEATER, storm.n.OFF)
+storm.n.set_fan_state(storm.n.OFF)
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
