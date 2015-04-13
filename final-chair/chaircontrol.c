@@ -1,6 +1,8 @@
 #include "chaircontrol.h"
 #include "i2cchair.c"
 
+uint8_t fan_gpio;
+
 /* storm.n.check_occupancy()
     return bool if someone is in the seat */
 int check_occupancy(lua_State* L) {
@@ -19,17 +21,17 @@ int set_occupancy_mode(lua_State* L) {
 
     switch(mode) {
     case DISABLE:
-    *gpio0_enable_clear = occ_pin;
-    *gpio0_pullup_enable_clear = occ_pin;
-    *gpio0_schmitt_enable_clear = occ_pin;
-    break;
+	*gpio0_enable_clear = occ_pin;
+	*gpio0_pullup_enable_clear = occ_pin;
+	*gpio0_schmitt_enable_clear = occ_pin;
+	break;
     case ENABLE:
-    *gpio0_enable_set = occ_pin;
-    *gpio0_pullup_enable_set = occ_pin;
-    *gpio0_schmitt_enable_set = occ_pin;
-    break;
+	*gpio0_enable_set = occ_pin;
+	*gpio0_pullup_enable_set = occ_pin;
+	*gpio0_schmitt_enable_set = occ_pin;
+	break;
     }
-
+    
     return 0;
 }
 
@@ -96,50 +98,64 @@ int16_t read_register(uint8_t register_addr) {
 /* storm.n.set_fan_mode(mode)
    mode is in {storm.n.ENABLE, storm.n.DISABLE} */
 int set_fan_mode(lua_State* L) {
-    int result;
+    int result1, result2;
     switch(luaL_checkint(L, 1)) {
     case ENABLE:
 	*gpio1_enable_set = SDA;
 	*gpio1_enable_set = SCL;
-	result = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b10001000);
+	result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b10001000);
+	result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
+	fan_gpio = 0b00000000;
 	break;
     case DISABLE:
 	*gpio1_enable_clear = SDA;
 	*gpio1_enable_clear = SCL;
-	result = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b11111111);
+	result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b11111111);
+	result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
+	fan_gpio = 0b00000000;
 	break;
     default:
 	return 0;
     }
-    lua_pushnumber(L, result);
+    lua_pushnumber(L, result1 && result2);
     return 1;
 }
 
-/* storm.n.set_fan_state(state)
+/* storm.n.set_fan_state(fan, state)
+   fan is in {storm.n.BOTTOM_FAN, storm.n.BACK_FAN}
    state is in {storm.n.OFF, storm.n.LOW, storm.n.MEDIUM, storm.n.HIGH, storm.n.MAX}
    Fans must be enabled first. */
 int set_fan_state(lua_State* L) {
-    int state = luaL_checkint(L, 1);
-    int result;
-    switch(state) {
-    case OFF:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
+    int fan = luaL_checkint(L, 1);
+    int state = luaL_checkint(L, 2);
+    uint8_t mask;
+    switch(fan) {
+    case BACK_FAN:
+	mask = 0b10001111;
 	break;
-    case LOW:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00100010);
-	break;
-    case MEDIUM:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00010001);
-	break;
-    case HIGH:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00110011);
-	break;
-    case MAX:
-	result = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b01000100);
+    case BOTTOM_FAN:
+	mask = 0b11111000;
 	break;
     default:
-	return 0;
+      return 0;
     }
+    fan_gpio = fan_gpio & mask;
+    mask = ~mask;
+    switch(state) {
+    case LOW:
+	fan_gpio = fan_gpio | (0b00100010 & mask);
+	break;
+    case MEDIUM:
+	fan_gpio = fan_gpio | (0b00010001 & mask);
+	break;
+    case HIGH:
+	fan_gpio = fan_gpio | (0b00110011 & mask);
+	break;
+    case MAX:
+	fan_gpio = fan_gpio | (0b01000100 & mask);
+	break;
+    }
+    int result = write_register(FAN_CONTROLLER_GPIO_ADDR, fan_gpio);
     lua_pushnumber(L, result);
     return 1;
 }

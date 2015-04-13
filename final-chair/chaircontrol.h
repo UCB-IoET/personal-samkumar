@@ -23,6 +23,9 @@
 #define BOTTOM_HEATER 0 // storm.n.BOTTOM_HEATER
 #define BACK_HEATER 1 // storm.n.BACK_HEATER
 
+#define BOTTOM_FAN 0 // storm.n.BOTTOM_FAN
+#define BACK_FAN 1 // storm.n.BACK_FAN
+
 #define DISABLE 0
 #define ENABLE 1
 
@@ -81,6 +84,8 @@ int check_occupancy(lua_State* L);
 #define CHAIRCONTROL_SYMBOLS \
     { LSTRKEY( "BOTTOM_HEATER" ), LNUMVAL( BOTTOM_HEATER ) }, \
     { LSTRKEY( "BACK_HEATER" ), LNUMVAL( BACK_HEATER ) }, \
+    { LSTRKEY( "BOTTOM_FAN" ), LNUMVAL( BOTTOM_FAN ) }, \
+    { LSTRKEY( "BACK_FAN" ), LNUMVAL( BACK_FAN ) }, \
     { LSTRKEY( "DISABLE" ), LNUMVAL( DISABLE ) }, \
     { LSTRKEY( "ENABLE" ), LNUMVAL( ENABLE ) }, \
     { LSTRKEY( "OFF" ), LNUMVAL( OFF ) }, \

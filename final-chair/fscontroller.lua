@@ -11,6 +11,8 @@ TOPORT = 60004
 
 TEST_IP = "ff02::beef"
 
+MY_IP = "2001:470:4956:2:212:6d02:0:3109"
+
 function sendActuationMessage(payload, address, ip)
    brd:flash()
    local toIP = payload["toIP"]
