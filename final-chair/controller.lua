@@ -15,33 +15,44 @@ storm.n.set_fan_state(storm.n.BACK_FAN, storm.n.OFF)
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
+controls = {"backh", "bottomh", "backf", "bottomf"}
+fnmap = {backh = storm.n.set_heater_state, bottomh = storm.n.set_heater_state,
+	 backf = storm.n.set_fan_state, bottomf = storm.n.set_fan_state}
+instmap = {backh = storm.n.BACK_HEATER, bottomh = storm.n.BOTTOM_HEATER,
+	   backf = storm.n.BACK_FAN, bottomf = storm.n.BOTTOM_FAN}
+states = {
+   backh = {OFF = true, ON = true},
+   backf = {OFF = true, LOW = true, MEDIUM = true, HIGH = true, MAX = true}
+}
+states.bottomh = states.backh
+states.bottomf = states.backf
+
 server = RNQS:new(60004, function (msgTable, ip, port)
 		     print("got")
 		     pt(msgTable)
 		     local retTable = {}
 		     local cmd = 0
 		     if msgTable["heaters"] ~= nil then
-			cmd = msgTable["heaters"]
-			if cmd == "OFF" or cmd == "ON" or cmd == "TOGGLE" then
-			   storm.n.set_heater_state(storm.n.BOTTOM_HEATER, storm.n[cmd])
-			   storm.n.set_heater_state(storm.n.BACK_HEATER, storm.n[cmd])
-			   retTable["heaters"] = "ok"
-			else
-			   retTable["heaters"] = "fail"
-			end
+			msgTable["backh"] = msgTable["heaters"]
+			msgTable["bottomh"] = msgTable["heaters"]
+			msgTable["heaters"] = nil
 		     end
 		     if msgTable["fans"] ~= nil then
-			cmd = msgTable["fans"]
-			if cmd == "OFF" or cmd == "LOW" or cmd == "MEDIUM" or cmd =="HIGH" or cmd == "MAX" then
-			   storm.n.set_fan_state(storm.n.BOTTOM_FAN, storm.n[cmd])
-			   storm.n.set_fan_state(storm.n.BACK_FAN, storm.n[cmd])
-			   retTable["fans"] = "ok"
-			else
-			   retTable["fans"] = "fail"
-			end
+			msgTable["backf"] = msgTable["fans"]
+			msgTable["bottomf"] = msgTable["fans"]
+			msgTable["fans"] = nil
 		     end
-		     if msgTable["occupancy"] ~= nil then
-			retTable["occupancy"] = storm.n.check_occupancy()
+
+		     for _, control in pairs(controls) do
+			if msgTable[control] ~= nil then
+			   cmd = msgTable[control]
+			   if states[control][cmd] ~= nil then
+			      fnmap[control](instmap[control], storm.n[cmd])
+			      retTable[control] = "ok"
+			   else
+			      retTable[control] = "fail"
+			   end
+			end
 		     end
 		     print("returning")
 		     pt(retTable)
