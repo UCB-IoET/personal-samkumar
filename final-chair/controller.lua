@@ -2,30 +2,15 @@
 
 require "cord"
 RNQS = require "rnqServer"
-
-storm.n.set_heater_mode(storm.n.BOTTOM_HEATER, storm.n.ENABLE)
-storm.n.set_heater_mode(storm.n.BACK_HEATER, storm.n.ENABLE)
-storm.n.set_fan_mode(storm.n.ENABLE)
-storm.n.set_occupancy_mode(storm.n.ENABLE)
-
-storm.n.set_heater_state(storm.n.BOTTOM_HEATER, storm.n.OFF)
-storm.n.set_heater_state(storm.n.BACK_HEATER, storm.n.OFF)
-storm.n.set_fan_state(storm.n.BOTTOM_FAN, storm.n.OFF)
-storm.n.set_fan_state(storm.n.BACK_FAN, storm.n.OFF)
+ChairAct = require "chairactuator"
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
 controls = {"backh", "bottomh", "backf", "bottomf"}
-fnmap = {backh = storm.n.set_heater_state, bottomh = storm.n.set_heater_state,
-	 backf = storm.n.set_fan_state, bottomf = storm.n.set_fan_state}
+fnmap = {backh = ChairAct.setHeater, bottomh = ChairAct.setHeater,
+	 backf = ChairAct.setFan, bottomf = ChairAct.setFan}
 instmap = {backh = storm.n.BACK_HEATER, bottomh = storm.n.BOTTOM_HEATER,
 	   backf = storm.n.BACK_FAN, bottomf = storm.n.BOTTOM_FAN}
-states = {
-   backh = {OFF = true, ON = true},
-   backf = {OFF = true, LOW = true, MEDIUM = true, HIGH = true, MAX = true}
-}
-states.bottomh = states.backh
-states.bottomf = states.backf
 
 server = RNQS:new(60004, function (msgTable, ip, port)
 		     print("got")
@@ -46,8 +31,8 @@ server = RNQS:new(60004, function (msgTable, ip, port)
 		     for _, control in pairs(controls) do
 			if msgTable[control] ~= nil then
 			   cmd = msgTable[control]
-			   if states[control][cmd] ~= nil then
-			      fnmap[control](instmap[control], storm.n[cmd])
+			   if cmd >= 0 and cmd <= 100 then
+			      fnmap[control](instmap[control], cmd)
 			      retTable[control] = "ok"
 			   else
 			      retTable[control] = "fail"
