@@ -17,7 +17,7 @@ function update_smap()
     "macaddr": "12345",
     "occupancy": occupancy
   }
-  storm.net.sendto(sendsock, storm.mp.pack(payload), shell_storm_pm, 3000)
+  storm.net.sendto(sendsock, storm.mp.pack(payload), shell_storm_pm, 39000)
 end
 
 storm.os.invokePeriodically(10*storm.os.SECOND, update_smap)
