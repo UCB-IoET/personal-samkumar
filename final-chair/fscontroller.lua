@@ -1,4 +1,5 @@
 require "cord"
+require "storm"
 RNQC = require "rnqClient"
 RNQS = require "rnqServer"
 LED = require "led"
@@ -27,6 +28,18 @@ function sendActuationMessage(payload, address, ip)
 end
 
 server = RNQS:new(60001, sendActuationMessage)
+
+forwardSocket = storm.net.udpsocket(30001, function (payload, ip, port)
+				       return nil
+					   end)
+
+pt = function (t) for k, v in pairs(t) do print(k, v) end end
+
+chairForwarder = RNQS:new(30002, function (payload, ip, port)
+			     storm.net.sendto(forwardSocket, storm.mp.pack(payload), "2001:470:1f04:5f2::2", 38003)
+			     return {rv = "ok"}
+				 end)
+
 
 sh = require "stormsh"
 sh.start()

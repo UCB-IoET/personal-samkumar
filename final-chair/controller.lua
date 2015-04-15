@@ -2,13 +2,13 @@
 
 require "cord"
 RNQS = require "rnqServer"
-ChairAct = require "chairactuator"
+ChairSettings = require "chairsettings"
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
 controls = {"backh", "bottomh", "backf", "bottomf"}
-fnmap = {backh = ChairAct.setHeater, bottomh = ChairAct.setHeater,
-	 backf = ChairAct.setFan, bottomf = ChairAct.setFan}
+fnmap = {backh = ChairSettings.setHeater, bottomh = ChairSettings.setHeater,
+	 backf = ChairSettings.setFan, bottomf = ChairSettings.setFan}
 instmap = {backh = storm.n.BACK_HEATER, bottomh = storm.n.BOTTOM_HEATER,
 	   backf = storm.n.BACK_FAN, bottomf = storm.n.BOTTOM_FAN}
 

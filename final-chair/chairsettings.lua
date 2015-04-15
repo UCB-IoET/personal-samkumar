@@ -1,5 +1,6 @@
 require "cord"
-local Actuator = {}
+RNQC = require "rnqClient"
+local Settings = {}
 
 storm.n.set_heater_mode(storm.n.BOTTOM_HEATER, storm.n.ENABLE)
 storm.n.set_heater_mode(storm.n.BACK_HEATER, storm.n.ENABLE)
@@ -61,7 +62,25 @@ function setFan(fan, setting)
    storm.n.set_fan_state(fan, quantized)
 end
 
-Actuator.setHeater = setHeater
-Actuator.setFan = setFan
+rnqcl = RNQC:new(30000)
+function updateSMAP(full)
+   local payload = {
+      macaddr = "12345",
+      occupancy = storm.n.check_occupancy()
+   }
+   if full then
+      payload.backh = heaterSettings[storm.n.BACK_HEATER]
+      payload.bottomh = heaterSettings[storm.n.BOTTOM_HEATER]
+      payload.backf = fanSettings[storm.n.BACK_FAN]
+      payload.bottomf = fanSettings[storm.n.BOTTOM_FAN]
+   end
+   rnqcl:sendMessage(payload, "ff02::3109", 30002)
+end
 
-return Actuator
+storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP, false)
+
+Settings.setHeater = setHeater
+Settings.setFan = setFan
+Settings.updateSMAP = updateSMAP
+
+return Settings
