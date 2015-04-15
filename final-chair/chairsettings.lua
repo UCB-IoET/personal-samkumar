@@ -2,6 +2,7 @@ require "cord"
 RNQC = require "rnqClient"
 local Settings = {}
 
+storm.n.set_occupancy_mode(storm.n.ENABLE)
 storm.n.set_heater_mode(storm.n.BOTTOM_HEATER, storm.n.ENABLE)
 storm.n.set_heater_mode(storm.n.BACK_HEATER, storm.n.ENABLE)
 storm.n.set_fan_mode(storm.n.ENABLE)
