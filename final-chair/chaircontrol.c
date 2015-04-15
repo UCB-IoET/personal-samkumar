@@ -131,10 +131,10 @@ int set_fan_state(lua_State* L) {
     uint8_t mask;
     switch(fan) {
     case BACK_FAN:
-	mask = 0b10001111;
+	mask = 0b11111000;
 	break;
     case BOTTOM_FAN:
-	mask = 0b11111000;
+	mask = 0b10001111;
 	break;
     default:
       return 0;
