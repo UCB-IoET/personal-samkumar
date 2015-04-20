@@ -20,26 +20,26 @@ heaters = {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
 
 for _, heater in pairs(heaters) do
    (function (heater)
-         cord.new(function ()
-               local setting = nil
-               while true do
-                  setting = 10 * heaterSettings[heater] * storm.os.MILLISECOND
-                  if not storm.n.check_occupancy() then
-                     setting = 0
-                  end
-                  if setting <= 0 then
-                     cord.yield()
-                  else
-                     storm.n.set_heater_state(heater, storm.n.ON)
-                     cord.await(storm.os.invokeLater, setting)
-                  end
-                  if setting >= storm.os.SECOND then
-                     cord.yield()
-                  else
-                     storm.n.set_heater_state(heater, storm.n.OFF)
-                     cord.await(storm.os.invokeLater, storm.os.SECOND - setting)
-                  end
-               end
+      cord.new(function ()
+         local setting = nil
+         while true do
+            setting = 10 * heaterSettings[heater] * storm.os.MILLISECOND
+            if not storm.n.check_occupancy() then
+               setting = 0
+            end
+            if setting <= 0 then
+               cord.yield()
+            else
+               storm.n.set_heater_state(heater, storm.n.ON)
+               cord.await(storm.os.invokeLater, setting)
+            end
+            if setting >= storm.os.SECOND then
+               cord.yield()
+            else
+               storm.n.set_heater_state(heater, storm.n.OFF)
+               cord.await(storm.os.invokeLater, storm.os.SECOND - setting)
+            end
+         end
        end)
     end)(heater)
 end
@@ -86,28 +86,40 @@ end
 
 storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP, false)
 
-local last_occupancy_state = false
-storm.os.invokePeriodically(
-   1 * storm.os.SECOND,
-   function ()
-      local current_state = storm.n.check_occupancy()
-      if current_state and not last_occupancy_state then
-         for i = 1,#fans do
-            fan = fans[i]
-            storm.n.set_fan_state(fan, fanSettings[fan])
-         end
-      elseif not current_state and last_occupancy_state then
-         for i = 1,#fans do
-            fan = fans[i]
-            storm.n.set_fan_state(fan, storm.n.OFF)
+function on_occupancy_changed(callback)
+   local last_state = storm.n.check_occupancy()
+   storm.os.invokePeriodically(
+      500*storm.os.MILLISECOND,
+      function()
+         local current_state = storm.n.check_occupancy()
+         local temp_last_state = last_state
+         last_state = current_state
+         if temp_last_state ~= current_state then
+            callback(current_state)
          end
       end
-      last_occupancy_state = current_state
+   )
+end
+
+function chair_state_callback(occupied)
+   if occupied then
+      for i = 1,#fans do
+            fan = fans[i]
+            storm.n.set_fan_state(fan, fanSettings[fan])
+      end
+   else
+      for i = 1,#fans do
+         fan = fans[i]
+         storm.n.set_fan_state(fan, storm.n.OFF)
+      end
    end
-)
+end
+
+on_occupancy_changed(chair_state_callback)
 
 Settings.setHeater = setHeater
 Settings.setFan = setFan
 Settings.updateSMAP = updateSMAP
+Settings.on_occupancy_changed = on_occupancy_changed
 
 return Settings
