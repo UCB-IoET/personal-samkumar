@@ -6,7 +6,7 @@ int I2C_delay() {
     volatile int v = 0;
     int i;
     for (i = 0; i < 10000; i++) {
-	v = v + 1;
+        v = v + 1;
     }
     return v;
 }
@@ -42,18 +42,18 @@ void arbitration_lost() {
 int started = 0; // global data
 void i2c_start_cond(void) {
     if (started) { // if started, do a restart cond
-	// set SDA to 1
-	read_SDA();
-	I2C_delay();
-	while (read_SCL() == 0) {  // Clock stretching
-	    // You should add timeout to this loop
-	}
-	// Repeated start setup time, minimum 4.7us
-	I2C_delay();
+        // set SDA to 1
+        read_SDA();
+        I2C_delay();
+        while (read_SCL() == 0) {  // Clock stretching
+            // You should add timeout to this loop
+        }
+        // Repeated start setup time, minimum 4.7us
+        I2C_delay();
     }
     if (read_SDA() == 0) {
         arbitration_lost();
-	return;
+        return;
     }
     // SCL is high, set SDA from 1 to 0.
     clear_SDA();
@@ -68,14 +68,14 @@ void i2c_stop_cond(void){
     I2C_delay();
     // Clock stretching
     while (read_SCL() == 0) {
-	// add timeout to this loop.
+        // add timeout to this loop.
     }
     // Stop bit setup time, minimum 4us
     I2C_delay();
     // SCL is high, set SDA from 0 to 1
     if (read_SDA() == 0) {
-	arbitration_lost();
-	return;
+        arbitration_lost();
+        return;
     }
     I2C_delay();
     started = 0;
@@ -84,19 +84,19 @@ void i2c_stop_cond(void){
 // Write a bit to I2C bus
 void i2c_write_bit(int bit) {
     if (bit) {
-	read_SDA();
+        read_SDA();
     } else {
-	clear_SDA();
+        clear_SDA();
     }
     I2C_delay();
     while (read_SCL() == 0) { // Clock stretching
-	// You should add timeout to this loop
+        // You should add timeout to this loop
     }
     // SCL is high, now data is valid
     // If SDA is high, check that nobody else is driving SDA
     if (bit && read_SDA() == 0) {
-	arbitration_lost();
-	return;
+        arbitration_lost();
+        return;
     }
     I2C_delay();
     clear_SCL();
@@ -109,7 +109,7 @@ int i2c_read_bit(void) {
     read_SDA();
     I2C_delay();
     while (read_SCL() == 0) { // Clock stretching
-	// You should add timeout to this loop
+        // You should add timeout to this loop
     }
     // SCL is high, now data is valid
     bit = read_SDA();
@@ -123,15 +123,15 @@ int i2c_write_byte(int send_start, int send_stop, uint8_t byte) {
     unsigned bit;
     int nack;
     if (send_start) {
-	i2c_start_cond();
+        i2c_start_cond();
     }
     for (bit = 0; bit < 8; bit++) {
-	i2c_write_bit((byte & 0x80) != 0);
-	byte <<= 1;
+        i2c_write_bit((byte & 0x80) != 0);
+        byte <<= 1;
     }
     nack = i2c_read_bit();
     if (send_stop) {
-	i2c_stop_cond();
+        i2c_stop_cond();
     }
     return nack;
 }
@@ -141,11 +141,11 @@ uint8_t i2c_read_byte(int nack, int send_stop) {
     uint8_t byte = 0;
     unsigned bit;
     for (bit = 0; bit < 8; bit++) {
-	byte = (byte << 1) | i2c_read_bit();
+        byte = (byte << 1) | i2c_read_bit();
     }
     i2c_write_bit(nack);
     if (send_stop) {
-	i2c_stop_cond();
+        i2c_stop_cond();
     }
     return byte;
 }
@@ -184,9 +184,9 @@ int lua_read_SCL(lua_State* L) {
 int lua_set_SDA(lua_State* L) {
     *gpio1_output_enable_set = SDA;
     if (luaL_checkint(L, 1)) {
-	*gpio1_output_set = SDA;
+        *gpio1_output_set = SDA;
     } else {
-	*gpio1_output_clear = SDA;
+        *gpio1_output_clear = SDA;
     }
     return 1;
 }
@@ -194,9 +194,9 @@ int lua_set_SDA(lua_State* L) {
 int lua_set_SCL(lua_State* L) {
     *gpio1_output_enable_set = SCL;
     if (luaL_checkint(L, 1)) {
-	*gpio1_output_set = SCL;
+        *gpio1_output_set = SCL;
     } else {
-	*gpio1_output_clear = SCL;
+        *gpio1_output_clear = SCL;
     }
     return 1;
 }
