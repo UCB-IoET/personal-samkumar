@@ -21,15 +21,15 @@ int set_occupancy_mode(lua_State* L) {
 
     switch(mode) {
     case DISABLE:
-	*gpio0_enable_clear = occ_pin;
-	*gpio0_pullup_enable_clear = occ_pin;
-	*gpio0_schmitt_enable_clear = occ_pin;
-	break;
+	    *gpio0_enable_clear = occ_pin;
+	    *gpio0_pullup_enable_clear = occ_pin;
+	    *gpio0_schmitt_enable_clear = occ_pin;
+	    break;
     case ENABLE:
-	*gpio0_enable_set = occ_pin;
-	*gpio0_pullup_enable_set = occ_pin;
-	*gpio0_schmitt_enable_set = occ_pin;
-	break;
+	    *gpio0_enable_set = occ_pin;
+	    *gpio0_pullup_enable_set = occ_pin;
+	    *gpio0_schmitt_enable_set = occ_pin;
+	    break;
     }
     
     return 0;
