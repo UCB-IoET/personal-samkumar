@@ -20,6 +20,7 @@ int32_t __attribute__((naked)) k_syscall_ex_ri32_cptr_u32_vi32ptr(uint32_t id, c
 #define bl_PECS_setname_syscall(name, len) k_syscall_ex_ri32_cptr_u32(0x801, (name), (len))
 #define bl_PECS_send_syscall(data, len) k_syscall_ex_ri32_cptr_u32(0x802, (data), (len))
 #define bl_PECS_receive_syscall(buffer, len, flag) k_syscall_ex_ri32_cptr_u32_vi32ptr(0x803, (buffer), (len), (flag))
+#define bl_PECS_clearbuf_syscall() k_syscall_ex_ri32(0x804)
 
 void print_byte(uint8_t byte) {
     printf("%d\n", byte);
@@ -67,4 +68,9 @@ int bl_PECS_receive_tail(lua_State* L) {
         cord_set_continuation(L, bl_PECS_receive_tail, 0);
         return nc_invoke_sleep(L, 0);
     }
+}
+
+int bl_PECS_clear_recv_buf(lua_State* L) {
+    bl_PECS_clearbuf_syscall();
+    return 0;
 }
