@@ -12,6 +12,22 @@ int check_occupancy(lua_State* L) {
     return 1;
 }
 
+int quantize_fan(lua_State* L) {
+    int setting = luaL_checkint(L, 1);
+    if (setting == 0) {
+        lua_pushnumber(L, OFF);
+    } else if (setting < 25) {
+        lua_pushnumber(L, LOW);
+    } else if (setting < 50) {
+        lua_pushnumber(L, MEDIUM);
+    } else if (setting < 75) {
+        lua_pushnumber(L, HIGH);
+    } else {
+        lua_pushnumber(L, MAX);
+    }
+    return 1;
+}
+
 /* storm.n.set_occupancy_mode(mode)
    heater is in {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
    mode is in {storm.n.ENABLE, storm.n.DISABLE} */
@@ -21,15 +37,15 @@ int set_occupancy_mode(lua_State* L) {
 
     switch(mode) {
     case DISABLE:
-	    *gpio0_enable_clear = occ_pin;
-	    *gpio0_pullup_enable_clear = occ_pin;
-	    *gpio0_schmitt_enable_clear = occ_pin;
-	    break;
+            *gpio0_enable_clear = occ_pin;
+            *gpio0_pullup_enable_clear = occ_pin;
+            *gpio0_schmitt_enable_clear = occ_pin;
+            break;
     case ENABLE:
-	    *gpio0_enable_set = occ_pin;
-	    *gpio0_pullup_enable_set = occ_pin;
-	    *gpio0_schmitt_enable_set = occ_pin;
-	    break;
+            *gpio0_enable_set = occ_pin;
+            *gpio0_pullup_enable_set = occ_pin;
+            *gpio0_schmitt_enable_set = occ_pin;
+            break;
     }
     
     return 0;
@@ -44,13 +60,13 @@ int set_heater_mode(lua_State* L) {
 
     switch(mode) {
     case DISABLE:
-	*gpio0_output_enable_clear = heater_pin;
-	*gpio0_enable_clear= heater_pin;
-	break;
+        *gpio0_output_enable_clear = heater_pin;
+        *gpio0_enable_clear= heater_pin;
+        break;
     case ENABLE:
-	*gpio0_enable_set = heater_pin;
-	*gpio0_output_enable_set = heater_pin;
-	break;
+        *gpio0_enable_set = heater_pin;
+        *gpio0_output_enable_set = heater_pin;
+        break;
     }
 
     return 0;
@@ -66,14 +82,14 @@ int set_heater_state(lua_State* L) {
 
     switch(state) {
     case OFF:
-	*gpio0_output_clear = heater_pin;
-	break;
+        *gpio0_output_clear = heater_pin;
+        break;
     case ON:
-	*gpio0_output_set = heater_pin;
-	break;
+        *gpio0_output_set = heater_pin;
+        break;
     case TOGGLE:
-	*gpio0_output_toggle = heater_pin;
-	break;
+        *gpio0_output_toggle = heater_pin;
+        break;
     }
     return 0;
 }
@@ -81,16 +97,16 @@ int set_heater_state(lua_State* L) {
 /** Writes BYTE to the fan controller at the specifed REGISTER_ADDR. */
 int write_register(uint8_t register_addr, uint8_t byte) {
     return i2c_write_byte(1, 0, FAN_CONTROLLER_ADDR)
-	|| i2c_write_byte(0, 0, register_addr)
-	|| i2c_write_byte(0, 1, byte);
+        || i2c_write_byte(0, 0, register_addr)
+        || i2c_write_byte(0, 1, byte);
 }
 
 /** Reads BYTE from the fan controller at the specified REGISTER_ADDR.
     Returns -1 upon error. */
 int16_t read_register(uint8_t register_addr) {
     if (i2c_write_byte(1, 0, FAN_CONTROLLER_ADDR | 0b00000001)
-	|| i2c_write_byte(0, 0, register_addr)) {
-	return -1;
+        || i2c_write_byte(0, 0, register_addr)) {
+        return -1;
     }
     return (int16_t) i2c_read_byte(1, 1);
 }
@@ -101,21 +117,21 @@ int set_fan_mode(lua_State* L) {
     int result1, result2;
     switch(luaL_checkint(L, 1)) {
     case ENABLE:
-	*gpio1_enable_set = SDA;
-	*gpio1_enable_set = SCL;
-	result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b10001000);
-	result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
-	fan_gpio = 0b00000000;
-	break;
+        *gpio1_enable_set = SDA;
+        *gpio1_enable_set = SCL;
+        result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b10001000);
+        result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
+        fan_gpio = 0b00000000;
+        break;
     case DISABLE:
-	*gpio1_enable_clear = SDA;
-	*gpio1_enable_clear = SCL;
-	result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b11111111);
-	result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
-	fan_gpio = 0b00000000;
-	break;
+        *gpio1_enable_clear = SDA;
+        *gpio1_enable_clear = SCL;
+        result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b11111111);
+        result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
+        fan_gpio = 0b00000000;
+        break;
     default:
-	return 0;
+        return 0;
     }
     lua_pushnumber(L, result1 && result2);
     return 1;
@@ -131,11 +147,11 @@ int set_fan_state(lua_State* L) {
     uint8_t mask;
     switch(fan) {
     case BACK_FAN:
-	mask = 0b11111000;
-	break;
+        mask = 0b11111000;
+        break;
     case BOTTOM_FAN:
-	mask = 0b10001111;
-	break;
+        mask = 0b10001111;
+        break;
     default:
       return 0;
     }
@@ -143,17 +159,17 @@ int set_fan_state(lua_State* L) {
     mask = ~mask;
     switch(state) {
     case LOW:
-	fan_gpio = fan_gpio | (0b00100010 & mask);
-	break;
+        fan_gpio = fan_gpio | (0b00100010 & mask);
+        break;
     case MEDIUM:
-	fan_gpio = fan_gpio | (0b00010001 & mask);
-	break;
+        fan_gpio = fan_gpio | (0b00010001 & mask);
+        break;
     case HIGH:
-	fan_gpio = fan_gpio | (0b00110011 & mask);
-	break;
+        fan_gpio = fan_gpio | (0b00110011 & mask);
+        break;
     case MAX:
-	fan_gpio = fan_gpio | (0b01000100 & mask);
-	break;
+        fan_gpio = fan_gpio | (0b01000100 & mask);
+        break;
     }
     int result = write_register(FAN_CONTROLLER_GPIO_ADDR, fan_gpio);
     lua_pushnumber(L, result);

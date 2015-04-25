@@ -51,23 +51,12 @@ end
 
 -- SETTING is from 0 to 100
 function setFan(fan, setting)
-   local quantized = nil
-   if setting == 0 then
-      quantized = storm.n.OFF
-   elseif setting < 25 then
-      quantized = storm.n.LOW
-   elseif setting < 50 then
-      quantized = storm.n.MEDIUM
-   elseif setting < 75 then
-      quantized = storm.n.HIGH
-   else
-      quantized = storm.n.MAX
-   end
-   fanSettings[fan] = quantized
+   fanSettings[fan] = setting
    if storm.n.check_occupancy() then
-     storm.n.set_fan_state(fan, quantized)
+         storm.n.set_fan_state(fan, storm.n.quantize_fan(setting))
    end
 end
+    
 
 rnqcl = RNQC:new(30000)
 function updateSMAP(full)
@@ -78,10 +67,20 @@ function updateSMAP(full)
    if full then
       payload.backh = heaterSettings[storm.n.BACK_HEATER]
       payload.bottomh = heaterSettings[storm.n.BOTTOM_HEATER]
-      payload.backf = fanSettings[storm.n.BACK_FAN]
-      payload.bottomf = fanSettings[storm.n.BOTTOM_FAN]
+      payload.backf = storm.n.quantize_fan(fanSettings[storm.n.BACK_FAN])
+      payload.bottomf = storm.n.quantize_fan(fanSettings[storm.n.BOTTOM_FAN])
    end
-   rnqcl:sendMessage(payload, "ff02::3109", 30002)
+   --rnqcl:sendMessage(payload, "ff02::3109", 30002, 900, 10 * storm.os.MILLISECOND)
+   
+   -- Update the phone
+   local occ = 0
+   if payload.occupancy then
+      occ = 1
+   end
+   local strpayload = storm.n.pack_string_5(heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], occ)
+   storm.n.bl_PECS_send(strpayload)
+   
+   print("Updated")
 end
 
 storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP, false)
@@ -94,7 +93,7 @@ storm.os.invokePeriodically(
       if current_state and not last_occupancy_state then
          for i = 1,#fans do
             fan = fans[i]
-            storm.n.set_fan_state(fan, fanSettings[fan])
+            storm.n.set_fan_state(fan, storm.n.quantize_fan(fanSettings[fan]))
          end
       elseif not current_state and last_occupancy_state then
          for i = 1,#fans do
