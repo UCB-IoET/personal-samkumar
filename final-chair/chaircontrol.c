@@ -190,3 +190,21 @@ int lua_read_register_fan(lua_State* L) {
     lua_pushnumber(L, ret);
     return 1;
 }
+
+/* storm.n.set_temp_mode(mode)
+   mode is in {storm.n.ENABLE, storm.n.DISABLE} */
+int set_temp_mode(lua_State* L) {
+    switch(luaL_checkint(L, 1)) {
+    case ENABLE:
+        *gpio0_enable_set = SDA_TEMP;
+        *gpio0_enable_set = SCL_TEMP;
+        break;
+    case DISABLE:
+        *gpio0_enable_clear = SDA_TEMP;
+        *gpio0_enable_clear = SCL_TEMP;
+        break;
+    default:
+        return 0;
+    }
+    return 0;
+}

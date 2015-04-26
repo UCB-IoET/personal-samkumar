@@ -35,6 +35,30 @@ void clear_SDA_fan() {
     *gpio1_output_clear = SDA_FAN;
 }
 
+int read_SCL_temp() {
+    *gpio0_output_enable_clear = SCL_TEMP;
+    *gpio0_schmitt_enable_set = SCL_TEMP;
+    return (int) ((SCL_TEMP & *gpio0_pin_value) >> SCL_TEMP_BIT);
+}
+
+int read_SDA_temp() {
+    *gpio0_output_enable_clear = SDA_TEMP;
+    *gpio0_schmitt_enable_set = SDA_TEMP;
+    return (int) ((SDA_TEMP & *gpio0_pin_value) >> SDA_TEMP_BIT);
+}
+
+void clear_SCL_temp() {
+    *gpio0_schmitt_enable_clear = SCL_TEMP;
+    *gpio0_output_enable_set = SCL_TEMP;
+    *gpio0_output_clear = SCL_TEMP;
+}
+
+void clear_SDA_temp() {
+    *gpio0_schmitt_enable_clear = SDA_TEMP;
+    *gpio0_output_enable_set = SDA_TEMP;
+    *gpio0_output_clear = SDA_TEMP;
+}
+
 void arbitration_lost() {
     printf("arbitration lost\n");
 }
@@ -158,6 +182,14 @@ uint8_t i2c_read_byte_fan(int nack, int send_stop) {
     return i2c_read_byte(nack, send_stop, read_SCL_fan, read_SDA_fan, clear_SCL_fan, clear_SDA_fan);
 }
 
+int i2c_write_byte_temp(int send_start, int send_stop, uint8_t byte) {
+    return i2c_write_byte(send_start, send_stop, byte, read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp);
+}
+
+uint8_t i2c_read_byte_temp(int nack, int send_stop) {
+    return i2c_read_byte(nack, send_stop, read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp);
+}
+
 // Wrapper functions for Lua
 
 int lua_i2c_read_byte_fan(lua_State* L) {
@@ -177,6 +209,23 @@ int lua_i2c_write_byte_fan(lua_State* L) {
     return 1;
 }
 
+int lua_i2c_read_byte_temp(lua_State* L) {
+    int nack = luaL_checkint(L, 1);
+    int send_stop = luaL_checkint(L, 2);
+    int result = (int) i2c_read_byte_fan(nack, send_stop);
+    lua_pushnumber(L, result);
+    return 1;
+}
+
+int lua_i2c_write_byte_temp(lua_State* L) {
+    int send_start = luaL_checkint(L, 1);
+    int send_stop = luaL_checkint(L, 2);
+    uint8_t byte = (uint8_t) luaL_checkint(L, 3);
+    int nack = i2c_write_byte_fan(send_start, send_stop, byte);
+    lua_pushnumber(L, nack);
+    return 1;
+}
+
 int lua_read_SDA_fan(lua_State* L) {
     int sda = read_SDA_fan();
     lua_pushnumber(L, sda);
@@ -185,6 +234,18 @@ int lua_read_SDA_fan(lua_State* L) {
 
 int lua_read_SCL_fan(lua_State* L) {
     int scl = read_SCL_fan();
+    lua_pushnumber(L, scl);
+    return 1;
+}
+
+int lua_read_SDA_temp(lua_State* L) {
+    int sda = read_SDA_temp();
+    lua_pushnumber(L, sda);
+    return 1;
+}
+
+int lua_read_SCL_temp(lua_State* L) {
+    int scl = read_SCL_temp();
     lua_pushnumber(L, scl);
     return 1;
 }
@@ -209,8 +270,33 @@ int lua_set_SCL_fan(lua_State* L) {
     return 1;
 }
 
+int lua_set_SDA_temp(lua_State* L) {
+    *gpio0_output_enable_set = SDA_TEMP;
+    if (luaL_checkint(L, 1)) {
+        *gpio0_output_set = SDA_TEMP;
+    } else {
+        *gpio0_output_clear = SDA_TEMP;
+    }
+    return 1;
+}
+
+int lua_set_SCL_temp(lua_State* L) {
+    *gpio0_output_enable_set = SCL_TEMP;
+    if (luaL_checkint(L, 1)) {
+        *gpio0_output_set = SCL_TEMP;
+    } else {
+        *gpio0_output_clear = SCL_TEMP;
+    }
+    return 1;
+}
+
 int lua_read_pins_fan(lua_State* L) {
     lua_pushnumber(L, *gpio1_pin_value);
+    return 1;
+}
+
+int lua_read_pins_temp(lua_State* L) {
+    lua_pushnumber(L, *gpio0_pin_value);
     return 1;
 }
 
