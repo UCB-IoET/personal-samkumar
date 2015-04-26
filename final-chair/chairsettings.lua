@@ -86,7 +86,13 @@ end
 
 storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP, false)
 
+local callbacks = {}
+
 function on_occupancy_changed(callback)
+   callbacks[#callbacks + 1] = callback
+end
+
+function poll_chair_state()
    local last_state = storm.n.check_occupancy()
    storm.os.invokePeriodically(
       500*storm.os.MILLISECOND,
@@ -95,7 +101,9 @@ function on_occupancy_changed(callback)
          local temp_last_state = last_state
          last_state = current_state
          if temp_last_state ~= current_state then
-            callback(current_state)
+            for i=1,#callbacks do
+               callback(current_state)
+            end            
          end
       end
    )
