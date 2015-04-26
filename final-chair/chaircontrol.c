@@ -208,3 +208,19 @@ int set_temp_mode(lua_State* L) {
     }
     return 0;
 }
+
+/** Reads BYTE from the temperature sensor at the specified REGISTER_ADDR.
+    Returns -1 upon error. */
+int16_t read_register_temp(uint8_t register_addr) {
+    if (i2c_write_byte_temp(0, 0, register_addr)) {
+        return -1;
+    }
+    return (int16_t) i2c_read_byte_temp(1, 1);
+}
+
+int lua_read_register_temp(lua_State* L) {
+    int reg = luaL_checkint(L, 1);
+    int16_t ret = read_register_temp((uint8_t) reg);
+    lua_pushnumber(L, ret);
+    return 1;
+}

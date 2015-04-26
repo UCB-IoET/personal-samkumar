@@ -104,4 +104,5 @@ int check_occupancy(lua_State* L);
     { LSTRKEY( "check_occupancy" ), LFUNCVAL( check_occupancy ) }, \
     { LSTRKEY( "set_occupancy_mode" ), LFUNCVAL( set_occupancy_mode ) }, \
     { LSTRKEY( "quantize_fan"), LFUNCVAL( quantize_fan ) }, \
-    { LSTRKEY( "set_temp_mode"), LFUNCVAL( set_temp_mode ) },
+    { LSTRKEY( "set_temp_mode"), LFUNCVAL( set_temp_mode ) }, \
+    { LSTRKEY( "read_register_temp" ), LFUNCVAL( lua_read_register_temp ) },

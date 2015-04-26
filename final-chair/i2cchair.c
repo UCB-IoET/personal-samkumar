@@ -59,6 +59,18 @@ void clear_SDA_temp() {
     *gpio0_output_clear = SDA_TEMP;
 }
 
+void raise_SCL_temp() {
+    *gpio0_schmitt_enable_clear = SCL_TEMP;
+    *gpio0_output_enable_set = SCL_TEMP;
+    *gpio0_output_set = SCL_TEMP;
+}
+
+void raise_SDA_temp() {
+    *gpio0_schmitt_enable_clear = SDA_TEMP;
+    *gpio0_output_enable_clear = SDA_TEMP;
+    *gpio0_output_clear = SDA_TEMP;
+}
+
 void arbitration_lost() {
     printf("arbitration lost\n");
 }
@@ -84,6 +96,87 @@ void i2c_start_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), v
     I2C_delay();
     clear_SCL();
     started = 1;
+}
+
+void temp_start_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    raise_SDA();
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    clear_SDA();
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    raise_SDA();
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    clear_SDA(); // as a convention
+    I2C_delay();
+}
+
+void temp_write_bit(int bit, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    printf("Writing bit %d\n", bit);
+    if (bit) {
+        raise_SDA();
+    }
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    clear_SDA();
+    I2C_delay();
+}
+
+void temp_write_byte(uint8_t byte, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    int i;
+    printf("Writing %x\n", byte);
+    for (i = 0; i < 8; i++) {
+        printf("This is left: %x\n", byte);
+        printf("After mask: %x\n", (byte & 0x80));
+        temp_write_bit((byte & 0x80) >> 7, read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+        byte = byte << 1;
+    }
+    raise_SCL();
+    I2C_delay();
+    read_SDA();
+    I2C_delay();
+    clear_SCL();
+}
+
+int temp_read_bit(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    read_SDA();
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    int bit = read_SDA();
+    printf("Read bit %d\n", bit);
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    return bit;
+}
+
+uint8_t temp_read_byte(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    uint8_t result = 0;
+    int i;
+    for (i = 0; i < 8; i++) {
+        result = (result << 1) | temp_read_bit(read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+    }
+    clear_SDA();
+    return result;
+}
+
+uint32_t temp_read_bytes(int numbytes, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    uint32_t result = 0;
+    int i;
+    for (i = 0; i < numbytes; i++) {
+        result = (result << 8) | temp_read_byte(read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+    }
+    return result;
 }
 
 void i2c_stop_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
@@ -209,21 +302,21 @@ int lua_i2c_write_byte_fan(lua_State* L) {
     return 1;
 }
 
-int lua_i2c_read_byte_temp(lua_State* L) {
-    int nack = luaL_checkint(L, 1);
-    int send_stop = luaL_checkint(L, 2);
-    int result = (int) i2c_read_byte_fan(nack, send_stop);
-    lua_pushnumber(L, result);
+int lua_read_bytes_temp(lua_State* L) {
+    int numbytes = luaL_checkint(L, 1);
+    uint32_t result = temp_read_bytes(numbytes, read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp, raise_SCL_temp, raise_SDA_temp);
+    lua_pushnumber(L, (int) result);
     return 1;
 }
 
-int lua_i2c_write_byte_temp(lua_State* L) {
+int lua_write_byte_temp(lua_State* L) {
     int send_start = luaL_checkint(L, 1);
-    int send_stop = luaL_checkint(L, 2);
-    uint8_t byte = (uint8_t) luaL_checkint(L, 3);
-    int nack = i2c_write_byte_fan(send_start, send_stop, byte);
-    lua_pushnumber(L, nack);
-    return 1;
+    uint8_t byte = (uint8_t) luaL_checkint(L, 2);
+    if (send_start) {
+        temp_start_cond(read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp, raise_SCL_temp, raise_SDA_temp);
+    }
+    temp_write_byte(byte, read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp, raise_SCL_temp, raise_SDA_temp);
+    return 0;
 }
 
 int lua_read_SDA_fan(lua_State* L) {
