@@ -95,20 +95,20 @@ int set_heater_state(lua_State* L) {
 }
 
 /** Writes BYTE to the fan controller at the specifed REGISTER_ADDR. */
-int write_register(uint8_t register_addr, uint8_t byte) {
-    return i2c_write_byte(1, 0, FAN_CONTROLLER_ADDR)
-        || i2c_write_byte(0, 0, register_addr)
-        || i2c_write_byte(0, 1, byte);
+int write_register_fan(uint8_t register_addr, uint8_t byte) {
+    return i2c_write_byte_fan(1, 0, FAN_CONTROLLER_ADDR)
+        || i2c_write_byte_fan(0, 0, register_addr)
+        || i2c_write_byte_fan(0, 1, byte);
 }
 
 /** Reads BYTE from the fan controller at the specified REGISTER_ADDR.
     Returns -1 upon error. */
-int16_t read_register(uint8_t register_addr) {
-    if (i2c_write_byte(1, 0, FAN_CONTROLLER_ADDR | 0b00000001)
-        || i2c_write_byte(0, 0, register_addr)) {
+int16_t read_register_fan(uint8_t register_addr) {
+    if (i2c_write_byte_fan(1, 0, FAN_CONTROLLER_ADDR | 0b00000001)
+        || i2c_write_byte_fan(0, 0, register_addr)) {
         return -1;
     }
-    return (int16_t) i2c_read_byte(1, 1);
+    return (int16_t) i2c_read_byte_fan(1, 1);
 }
 
 /* storm.n.set_fan_mode(mode)
@@ -117,17 +117,17 @@ int set_fan_mode(lua_State* L) {
     int result1, result2;
     switch(luaL_checkint(L, 1)) {
     case ENABLE:
-        *gpio1_enable_set = SDA;
-        *gpio1_enable_set = SCL;
-        result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b10001000);
-        result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
+        *gpio1_enable_set = SDA_FAN;
+        *gpio1_enable_set = SCL_FAN;
+        result1 = write_register_fan(FAN_CONTROLLER_IODIR_ADDR, 0b10001000);
+        result2 = write_register_fan(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
         fan_gpio = 0b00000000;
         break;
     case DISABLE:
-        *gpio1_enable_clear = SDA;
-        *gpio1_enable_clear = SCL;
-        result1 = write_register(FAN_CONTROLLER_IODIR_ADDR, 0b11111111);
-        result2 = write_register(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
+        *gpio1_enable_clear = SDA_FAN;
+        *gpio1_enable_clear = SCL_FAN;
+        result1 = write_register_fan(FAN_CONTROLLER_IODIR_ADDR, 0b11111111);
+        result2 = write_register_fan(FAN_CONTROLLER_GPIO_ADDR, 0b00000000);
         fan_gpio = 0b00000000;
         break;
     default:
@@ -171,22 +171,22 @@ int set_fan_state(lua_State* L) {
         fan_gpio = fan_gpio | (0b01000100 & mask);
         break;
     }
-    int result = write_register(FAN_CONTROLLER_GPIO_ADDR, fan_gpio);
+    int result = write_register_fan(FAN_CONTROLLER_GPIO_ADDR, fan_gpio);
     lua_pushnumber(L, result);
     return 1;
 }
 
-int lua_write_register(lua_State* L) {
+int lua_write_register_fan(lua_State* L) {
     int reg = luaL_checkint(L, 1);
     int byte = luaL_checkint(L, 2);
-    int ret = write_register((uint8_t) reg, (uint8_t) byte);
+    int ret = write_register_fan((uint8_t) reg, (uint8_t) byte);
     lua_pushnumber(L, ret);
     return 1;
 }
 
-int lua_read_register(lua_State* L) {
+int lua_read_register_fan(lua_State* L) {
     int reg = luaL_checkint(L, 1);
-    int16_t ret = read_register((uint8_t) reg);
+    int16_t ret = read_register_fan((uint8_t) reg);
     lua_pushnumber(L, ret);
     return 1;
 }

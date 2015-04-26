@@ -87,8 +87,9 @@ storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP, false)
 
 local last_occupancy_state = false
 storm.os.invokePeriodically(
-   1 * storm.os.SECOND,
+   3 * storm.os.SECOND,
    function ()
+      print("checking fan")
       local current_state = storm.n.check_occupancy()
       if current_state and not last_occupancy_state then
          for i = 1,#fans do

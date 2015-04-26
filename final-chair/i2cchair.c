@@ -11,28 +11,28 @@ int I2C_delay() {
     return v;
 }
 
-int read_SCL() {
-    *gpio1_output_enable_clear = SCL;
-    *gpio1_schmitt_enable_set = SCL;
-    return (int) ((SCL & *gpio1_pin_value) >> SCL_BIT);
+int read_SCL_fan() {
+    *gpio1_output_enable_clear = SCL_FAN;
+    *gpio1_schmitt_enable_set = SCL_FAN;
+    return (int) ((SCL_FAN & *gpio1_pin_value) >> SCL_FAN_BIT);
 }
 
-int read_SDA() {
-    *gpio1_output_enable_clear = SDA;
-    *gpio1_schmitt_enable_set = SDA;
-    return (int) ((SDA & *gpio1_pin_value) >> SDA_BIT);
+int read_SDA_fan() {
+    *gpio1_output_enable_clear = SDA_FAN;
+    *gpio1_schmitt_enable_set = SDA_FAN;
+    return (int) ((SDA_FAN & *gpio1_pin_value) >> SDA_FAN_BIT);
 }
 
-void clear_SCL() {
-    *gpio1_schmitt_enable_clear = SCL;
-    *gpio1_output_enable_set = SCL;
-    *gpio1_output_clear = SCL;
+void clear_SCL_fan() {
+    *gpio1_schmitt_enable_clear = SCL_FAN;
+    *gpio1_output_enable_set = SCL_FAN;
+    *gpio1_output_clear = SCL_FAN;
 }
 
-void clear_SDA() {
-    *gpio1_schmitt_enable_clear = SDA;
-    *gpio1_output_enable_set = SDA;
-    *gpio1_output_clear = SDA;
+void clear_SDA_fan() {
+    *gpio1_schmitt_enable_clear = SDA_FAN;
+    *gpio1_output_enable_set = SDA_FAN;
+    *gpio1_output_clear = SDA_FAN;
 }
 
 void arbitration_lost() {
@@ -40,7 +40,7 @@ void arbitration_lost() {
 }
 
 int started = 0; // global data
-void i2c_start_cond(void) {
+void i2c_start_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
     if (started) { // if started, do a restart cond
         // set SDA to 1
         read_SDA();
@@ -62,7 +62,7 @@ void i2c_start_cond(void) {
     started = 1;
 }
 
-void i2c_stop_cond(void){
+void i2c_stop_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
     // set SDA to 0
     clear_SDA();
     I2C_delay();
@@ -82,7 +82,7 @@ void i2c_stop_cond(void){
 }
 
 // Write a bit to I2C bus
-void i2c_write_bit(int bit) {
+void i2c_write_bit(int bit, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
     if (bit) {
         read_SDA();
     } else {
@@ -103,7 +103,7 @@ void i2c_write_bit(int bit) {
 }
 
 // Read a bit from I2C bus
-int i2c_read_bit(void) {
+int i2c_read_bit(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
     int bit;
     // Let the slave drive data
     read_SDA();
@@ -119,89 +119,97 @@ int i2c_read_bit(void) {
 }
 
 // Write a byte to I2C bus. Return 0 if ack by the slave.
-int i2c_write_byte(int send_start, int send_stop, uint8_t byte) {
+int i2c_write_byte(int send_start, int send_stop, uint8_t byte, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
     unsigned bit;
     int nack;
     if (send_start) {
-        i2c_start_cond();
+        i2c_start_cond(read_SCL, read_SDA, clear_SCL, clear_SDA);
     }
     for (bit = 0; bit < 8; bit++) {
-        i2c_write_bit((byte & 0x80) != 0);
+        i2c_write_bit((byte & 0x80) != 0, read_SCL, read_SDA, clear_SCL, clear_SDA);
         byte <<= 1;
     }
-    nack = i2c_read_bit();
+    nack = i2c_read_bit(read_SCL, read_SDA, clear_SCL, clear_SDA);
     if (send_stop) {
-        i2c_stop_cond();
+        i2c_stop_cond(read_SCL, read_SDA, clear_SCL, clear_SDA);
     }
     return nack;
 }
 
 // Read a byte from I2C bus
-uint8_t i2c_read_byte(int nack, int send_stop) {
+uint8_t i2c_read_byte(int nack, int send_stop, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
     uint8_t byte = 0;
     unsigned bit;
     for (bit = 0; bit < 8; bit++) {
-        byte = (byte << 1) | i2c_read_bit();
+        byte = (byte << 1) | i2c_read_bit(read_SCL, read_SDA, clear_SCL, clear_SDA);
     }
-    i2c_write_bit(nack);
+    i2c_write_bit(nack, read_SCL, read_SDA, clear_SCL, clear_SDA);
     if (send_stop) {
-        i2c_stop_cond();
+        i2c_stop_cond(read_SCL, read_SDA, clear_SCL, clear_SDA);
     }
     return byte;
 }
 
+int i2c_write_byte_fan(int send_start, int send_stop, uint8_t byte) {
+    return i2c_write_byte(send_start, send_stop, byte, read_SCL_fan, read_SDA_fan, clear_SCL_fan, clear_SDA_fan);
+}
+
+uint8_t i2c_read_byte_fan(int nack, int send_stop) {
+    return i2c_read_byte(nack, send_stop, read_SCL_fan, read_SDA_fan, clear_SCL_fan, clear_SDA_fan);
+}
+
 // Wrapper functions for Lua
 
-int lua_i2c_read_byte(lua_State* L) {
+int lua_i2c_read_byte_fan(lua_State* L) {
     int nack = luaL_checkint(L, 1);
     int send_stop = luaL_checkint(L, 2);
-    int result = (int) i2c_read_byte(nack, send_stop);
+    int result = (int) i2c_read_byte_fan(nack, send_stop);
     lua_pushnumber(L, result);
     return 1;
 }
 
-int lua_i2c_write_byte(lua_State* L) {
+int lua_i2c_write_byte_fan(lua_State* L) {
     int send_start = luaL_checkint(L, 1);
     int send_stop = luaL_checkint(L, 2);
     uint8_t byte = (uint8_t) luaL_checkint(L, 3);
-    int nack = i2c_write_byte(send_start, send_stop, byte);
+    int nack = i2c_write_byte_fan(send_start, send_stop, byte);
     lua_pushnumber(L, nack);
     return 1;
 }
 
-int lua_read_SDA(lua_State* L) {
-    int sda = read_SDA();
+int lua_read_SDA_fan(lua_State* L) {
+    int sda = read_SDA_fan();
     lua_pushnumber(L, sda);
     return 1;
 }
 
-int lua_read_SCL(lua_State* L) {
-    int scl = read_SCL();
+int lua_read_SCL_fan(lua_State* L) {
+    int scl = read_SCL_fan();
     lua_pushnumber(L, scl);
     return 1;
 }
 
-int lua_set_SDA(lua_State* L) {
-    *gpio1_output_enable_set = SDA;
+int lua_set_SDA_fan(lua_State* L) {
+    *gpio1_output_enable_set = SDA_FAN;
     if (luaL_checkint(L, 1)) {
-        *gpio1_output_set = SDA;
+        *gpio1_output_set = SDA_FAN;
     } else {
-        *gpio1_output_clear = SDA;
+        *gpio1_output_clear = SDA_FAN;
     }
     return 1;
 }
 
-int lua_set_SCL(lua_State* L) {
-    *gpio1_output_enable_set = SCL;
+int lua_set_SCL_fan(lua_State* L) {
+    *gpio1_output_enable_set = SCL_FAN;
     if (luaL_checkint(L, 1)) {
-        *gpio1_output_set = SCL;
+        *gpio1_output_set = SCL_FAN;
     } else {
-        *gpio1_output_clear = SCL;
+        *gpio1_output_clear = SCL_FAN;
     }
     return 1;
 }
 
-int lua_read_pins(lua_State* L) {
+int lua_read_pins_fan(lua_State* L) {
     lua_pushnumber(L, *gpio1_pin_value);
     return 1;
 }
