@@ -8,6 +8,9 @@
 #define SDA_TEMP 0x00200000
 #define SDA_TEMP_BIT 21
 
+#define TEMPERATURE_COMMAND 3
+#define HUMIDITY_COMMAND 5
+
 int i2c_write_byte_fan(int send_start, int send_stop, uint8_t byte);
 uint8_t i2c_read_byte_fan(int nack, int send_stop);
 

@@ -42,6 +42,11 @@
 #define HIGH 3
 #define MAX 4
 
+#define FAHRENHEIT 0
+#define CELSIUS 1
+
+#define NAN 0.0 / 0
+
 const uint32_t heaters[] = {STORM_GP12, STORM_PWM0};
 
 volatile uint32_t* const gpio0_enable_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_ENABLE_SET);
@@ -95,6 +100,8 @@ int check_occupancy(lua_State* L);
     { LSTRKEY( "MEDIUM" ), LNUMVAL( MEDIUM ) }, \
     { LSTRKEY( "HIGH" ), LNUMVAL( HIGH ) }, \
     { LSTRKEY( "MAX" ), LNUMVAL( MAX ) }, \
+    { LSTRKEY( "FAHRENHEIT" ), LNUMVAL( FAHRENHEIT ) }, \
+    { LSTRKEY( "CELSIUS" ), LNUMVAL( CELSIUS ) }, \
     { LSTRKEY( "set_heater_mode" ), LFUNCVAL( set_heater_mode ) }, \
     { LSTRKEY( "set_heater_state" ), LFUNCVAL( set_heater_state ) }, \
     { LSTRKEY( "set_fan_mode" ), LFUNCVAL( set_fan_mode ) }, \
@@ -105,4 +112,4 @@ int check_occupancy(lua_State* L);
     { LSTRKEY( "set_occupancy_mode" ), LFUNCVAL( set_occupancy_mode ) }, \
     { LSTRKEY( "quantize_fan"), LFUNCVAL( quantize_fan ) }, \
     { LSTRKEY( "set_temp_mode"), LFUNCVAL( set_temp_mode ) }, \
-    { LSTRKEY( "read_register_temp" ), LFUNCVAL( lua_read_register_temp ) },
+    { LSTRKEY( "get_temp_humidity" ), LFUNCVAL( lua_get_temp_humidity ) },

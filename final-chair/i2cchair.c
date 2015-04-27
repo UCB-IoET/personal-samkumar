@@ -98,87 +98,6 @@ void i2c_start_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), v
     started = 1;
 }
 
-void temp_start_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
-    raise_SDA();
-    I2C_delay();
-    raise_SCL();
-    I2C_delay();
-    clear_SDA();
-    I2C_delay();
-    clear_SCL();
-    I2C_delay();
-    raise_SCL();
-    I2C_delay();
-    raise_SDA();
-    I2C_delay();
-    clear_SCL();
-    I2C_delay();
-    clear_SDA(); // as a convention
-    I2C_delay();
-}
-
-void temp_write_bit(int bit, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
-    printf("Writing bit %d\n", bit);
-    if (bit) {
-        raise_SDA();
-    }
-    I2C_delay();
-    raise_SCL();
-    I2C_delay();
-    clear_SCL();
-    I2C_delay();
-    clear_SDA();
-    I2C_delay();
-}
-
-void temp_write_byte(uint8_t byte, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
-    int i;
-    printf("Writing %x\n", byte);
-    for (i = 0; i < 8; i++) {
-        printf("This is left: %x\n", byte);
-        printf("After mask: %x\n", (byte & 0x80));
-        temp_write_bit((byte & 0x80) >> 7, read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
-        byte = byte << 1;
-    }
-    raise_SCL();
-    I2C_delay();
-    read_SDA();
-    I2C_delay();
-    clear_SCL();
-}
-
-int temp_read_bit(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
-    read_SDA();
-    I2C_delay();
-    raise_SCL();
-    I2C_delay();
-    int bit = read_SDA();
-    printf("Read bit %d\n", bit);
-    I2C_delay();
-    clear_SCL();
-    I2C_delay();
-    return bit;
-}
-
-uint8_t temp_read_byte(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
-    uint8_t result = 0;
-    int i;
-    for (i = 0; i < 8; i++) {
-        result = (result << 1) | temp_read_bit(read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
-    }
-    clear_SDA();
-    return result;
-}
-
-uint32_t temp_read_bytes(int numbytes, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
-    uint32_t result = 0;
-    int i;
-    for (i = 0; i < numbytes; i++) {
-        result = (result << 8) | temp_read_byte(read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
-    }
-    return result;
-}
-
 void i2c_stop_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)()) {
     // set SDA to 0
     clear_SDA();
@@ -275,12 +194,106 @@ uint8_t i2c_read_byte_fan(int nack, int send_stop) {
     return i2c_read_byte(nack, send_stop, read_SCL_fan, read_SDA_fan, clear_SCL_fan, clear_SDA_fan);
 }
 
-int i2c_write_byte_temp(int send_start, int send_stop, uint8_t byte) {
-    return i2c_write_byte(send_start, send_stop, byte, read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp);
+void temp_start_cond(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    raise_SDA();
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    clear_SDA();
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    raise_SDA();
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    clear_SDA(); // as a convention
+    I2C_delay();
 }
 
-uint8_t i2c_read_byte_temp(int nack, int send_stop) {
-    return i2c_read_byte(nack, send_stop, read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp);
+void temp_write_bit(int bit, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    printf("Writing bit %d\n", bit);
+    if (bit) {
+        raise_SDA();
+    }
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    clear_SDA();
+    I2C_delay();
+}
+
+void temp_write_byte(uint8_t byte, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    int i;
+    printf("Writing %x\n", byte);
+    for (i = 0; i < 8; i++) {
+        printf("This is left: %x\n", byte);
+        printf("After mask: %x\n", (byte & 0x80));
+        temp_write_bit((byte & 0x80) >> 7, read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+        byte = byte << 1;
+    }
+    raise_SCL();
+    I2C_delay();
+    read_SDA();
+    I2C_delay();
+    clear_SCL();
+}
+
+int temp_read_bit(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    read_SDA();
+    I2C_delay();
+    raise_SCL();
+    I2C_delay();
+    int bit = read_SDA();
+    printf("Read bit %d\n", bit);
+    I2C_delay();
+    clear_SCL();
+    I2C_delay();
+    return bit;
+}
+
+uint8_t temp_read_byte(int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    uint8_t result = 0;
+    int i;
+    for (i = 0; i < 8; i++) {
+        result = (result << 1) | temp_read_bit(read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+    }
+    clear_SDA();
+    return result;
+}
+
+uint32_t temp_read_bytes(int numbytes, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    uint32_t result = 0;
+    int i;
+    for (i = 0; i < numbytes; i++) {
+        result = (result << 8) | temp_read_byte(read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+    }
+    return result;
+}
+
+/* CMD must be a command where NUMBYTES bytes are expected in response. So, not
+   all commands are supported by this function. However, it is sufficient to
+   obtain temperature and humidity measurements. NUMBYTES can be at most four.
+   If not, only the last four bytes are returned. */
+uint32_t temp_get_reading(uint8_t cmd, int numbytes, int (*read_SCL)(), int (*read_SDA)(), void (*clear_SCL)(), void (*clear_SDA)(), void (*raise_SCL)(), void (*raise_SDA)()) {
+    int i;
+    for (i = 0; i < 1000; i++) {
+        I2C_delay();
+    }
+    temp_start_cond(read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp, raise_SCL_temp, raise_SDA_temp);
+    temp_write_byte(cmd, read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+    for (i = 0; i < 1000; i++) {
+        I2C_delay();
+    }
+    return temp_read_bytes(3, read_SCL, read_SDA, clear_SCL, clear_SDA, raise_SCL, raise_SDA);
+}
+
+uint32_t temp_get_reading_tempsensor(uint8_t cmd, int numbytes) {
+    return temp_get_reading(cmd, numbytes, read_SCL_temp, read_SDA_temp, clear_SCL_temp, clear_SDA_temp, raise_SCL_temp, raise_SDA_temp);
 }
 
 // Wrapper functions for Lua

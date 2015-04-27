@@ -209,18 +209,41 @@ int set_temp_mode(lua_State* L) {
     return 0;
 }
 
-/** Reads BYTE from the temperature sensor at the specified REGISTER_ADDR.
-    Returns -1 upon error. */
-int16_t read_register_temp(uint8_t register_addr) {
-    if (i2c_write_byte_temp(0, 0, register_addr)) {
-        return -1;
+/* storm.n.get_temp_humidity(unit)
+   unit is in {storm.n.FAHRENHEIT, storm.n.CELSIUS} */
+int lua_get_temp_humidity(lua_State* L) {
+    int unit = luaL_checkint(L, 1);
+    uint32_t reading = temp_get_reading_tempsensor(TEMPERATURE_COMMAND, 3);
+    double rawtemp = (double) (reading >> 8); // remove the 8-bit checksum    
+    double temperature, ctemp;
+    switch (unit) {
+    case FAHRENHEIT:
+        temperature = -39.4 + 0.018 * rawtemp; // intentionally fall through
+    case CELSIUS:
+        ctemp = -39.65 + 0.01 * rawtemp;
+        switch (unit) {
+            case CELSIUS:
+                temperature = ctemp;
+                break;
+            case FAHRENHEIT:
+                break;
+            default:
+                temperature = NAN;
+                break;
+        }
+        break;
+    default:
+        temperature = NAN;
+        ctemp = NAN;
+        break;
     }
-    return (int16_t) i2c_read_byte_temp(1, 1);
-}
-
-int lua_read_register_temp(lua_State* L) {
-    int reg = luaL_checkint(L, 1);
-    int16_t ret = read_register_temp((uint8_t) reg);
-    lua_pushnumber(L, ret);
-    return 1;
+    reading = temp_get_reading_tempsensor(HUMIDITY_COMMAND, 3);
+    double rawhumidity = (double) (reading >> 8); // remove the 8-bit checksum
+    double linhumidity = -2.0468 + 0.0367 * rawhumidity - (1.5955e-6) * rawhumidity * rawhumidity;
+    double humidity = (ctemp - 25) * (0.01 + 0.00008 * rawhumidity) + linhumidity;
+    int fixedPtTemperature = (int) (temperature * 1000);
+    int fixedPtHumidity = (int) (humidity * 1000); // * 1000 fixed point
+    lua_pushnumber(L, fixedPtTemperature);
+    lua_pushnumber(L, fixedPtHumidity);
+    return 2;
 }
