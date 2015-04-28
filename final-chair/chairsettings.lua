@@ -6,6 +6,7 @@ storm.n.set_occupancy_mode(storm.n.ENABLE)
 storm.n.set_heater_mode(storm.n.BOTTOM_HEATER, storm.n.ENABLE)
 storm.n.set_heater_mode(storm.n.BACK_HEATER, storm.n.ENABLE)
 storm.n.set_fan_mode(storm.n.ENABLE)
+storm.n.set_temp_mode(storm.n.ENABLE)
 
 storm.n.set_heater_state(storm.n.BOTTOM_HEATER, storm.n.OFF)
 storm.n.set_heater_state(storm.n.BACK_HEATER, storm.n.OFF)
@@ -64,20 +65,23 @@ function updateSMAP(full)
       macaddr = "12345",
       occupancy = storm.n.check_occupancy()
    }
+   temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
    if full then
       payload.backh = heaterSettings[storm.n.BACK_HEATER]
       payload.bottomh = heaterSettings[storm.n.BOTTOM_HEATER]
       payload.backf = storm.n.quantize_fan(fanSettings[storm.n.BACK_FAN])
       payload.bottomf = storm.n.quantize_fan(fanSettings[storm.n.BOTTOM_FAN])
+      payload.temperature = temp
+      payload.humidity = humidity
    end
-   --rnqcl:sendMessage(payload, "ff02::3109", 30002, 900, 10 * storm.os.MILLISECOND)
+   --rnqcl:sendMessage(payload, "ff02::3109", 30002, 600, 15 * storm.os.MILLISECOND)
    
    -- Update the phone
    local occ = 0
    if payload.occupancy then
       occ = 1
    end
-   local strpayload = storm.n.pack_string_5(heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], occ)
+   local strpayload = storm.n.pack_string(heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], occ, temp, humidity)
    storm.n.bl_PECS_send(strpayload)
    
    print("Updated")

@@ -76,13 +76,19 @@ int interpret_string(lua_State* L) {
     return (int) length;
 }
 
-char strbuf[5];
-int pack_string_5(lua_State* L) {
-    strbuf[0] = luaL_checkint(L, 1);
-    strbuf[1] = luaL_checkint(L, 2);
-    strbuf[2] = luaL_checkint(L, 3);
-    strbuf[3] = luaL_checkint(L, 4);
-    strbuf[4] = luaL_checkint(L, 5);
-    lua_pushlstring(L, strbuf, 5);
+char strbuf[9];
+int pack_string(lua_State* L) {
+    strbuf[0] = luaL_checkint(L, 1); // back heater
+    strbuf[1] = luaL_checkint(L, 2); // bottom heater
+    strbuf[2] = luaL_checkint(L, 3); // back fan
+    strbuf[3] = luaL_checkint(L, 4); // bottom fan
+    strbuf[4] = luaL_checkint(L, 5); // occupancy
+    uint16_t temp = (uint16_t) luaL_checkint(L, 6);
+    uint16_t humidity = (uint16_t) luaL_checkint(L, 7);
+    strbuf[5] = temp >> 8;
+    strbuf[6] = temp & 0xFF; // big endian temperature reading
+    strbuf[7] = humidity >> 8;
+    strbuf[8] = humidity & 0xFF; // big endian humidity reading
+    lua_pushlstring(L, strbuf, 8);
     return 1;
 }

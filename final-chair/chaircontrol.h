@@ -45,8 +45,6 @@
 #define FAHRENHEIT 0
 #define CELSIUS 1
 
-#define NAN 0.0 / 0
-
 const uint32_t heaters[] = {STORM_GP12, STORM_PWM0};
 
 volatile uint32_t* const gpio0_enable_set = (volatile uint32_t* const) (GPIO_BASE + PA_OFFSET + GPIO_ENABLE_SET);

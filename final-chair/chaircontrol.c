@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "chaircontrol.h"
 #include "i2cchair.c"
 
@@ -215,7 +217,8 @@ int lua_get_temp_humidity(lua_State* L) {
     int unit = luaL_checkint(L, 1);
     uint32_t reading = temp_get_reading_tempsensor(TEMPERATURE_COMMAND, 3);
     double rawtemp = (double) (reading >> 8); // remove the 8-bit checksum    
-    double temperature, ctemp;
+    double temperature = NAN;
+    double ctemp;
     switch (unit) {
     case FAHRENHEIT:
         temperature = -39.4 + 0.018 * rawtemp; // intentionally fall through
@@ -225,15 +228,9 @@ int lua_get_temp_humidity(lua_State* L) {
             case CELSIUS:
                 temperature = ctemp;
                 break;
-            case FAHRENHEIT:
-                break;
-            default:
-                temperature = NAN;
-                break;
         }
         break;
     default:
-        temperature = NAN;
         ctemp = NAN;
         break;
     }
