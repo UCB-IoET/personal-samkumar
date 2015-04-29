@@ -38,13 +38,13 @@ forwardSocket = storm.net.udpsocket(30001, function (payload, ip, port)
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
 chairForwarder = RNQS:new(30002, function (payload, ip, port)
-			     storm.net.sendto(forwardSocket, storm.mp.pack(payload), shell_ip, 38003)
-			     return {rv = "ok"}
+                     payload["fromIP"] = ip
+                     print(ip)
+                     payload["myIP"] = storm.os.getipaddrstring()
+                     storm.net.sendto(forwardSocket, storm.mp.pack(payload), shell_ip, 38003)
+                     return {rv = "ok"}
 				 end)
-
-local ip_arr = storm.os.getipaddr()
-storm.net.sendto(forwardSocket, storm.mp.pack(ip_arr), shell_ip, 38003)
-
+				 
 sh = require "stormsh"
 sh.start()
 
