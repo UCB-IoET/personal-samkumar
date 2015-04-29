@@ -89,6 +89,6 @@ int pack_string(lua_State* L) {
     strbuf[6] = temp & 0xFF; // big endian temperature reading
     strbuf[7] = humidity >> 8;
     strbuf[8] = humidity & 0xFF; // big endian humidity reading
-    lua_pushlstring(L, strbuf, 8);
+    lua_pushlstring(L, strbuf, 9);
     return 1;
 }
