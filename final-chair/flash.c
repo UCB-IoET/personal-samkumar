@@ -41,20 +41,19 @@ int read_sp_index_tail(lua_State* L) {
     return cord_return(L, 1);
 }*/
 
-int flash_write_delay() {
-    volatile int i = 0;
-    while (i < 10000) {
-        i = i + 1;
-    }
-    return i;
-}
-
 int call_fn(lua_State* L) {
-    printf("call fn\n");
     lua_pushvalue(L, lua_upvalueindex(1));
     lua_pushvalue(L, lua_upvalueindex(2));
     lua_call(L, 1, 1);
     return 1;
+}
+
+int delay_handler(lua_State* L) {
+    lua_pushlightfunction(L, libstorm_os_invoke_later);
+    lua_pushnumber(L, 30 * MILLISECOND_TICKS);
+    lua_pushvalue(L, lua_upvalueindex(1));
+    lua_call(L, 2, 0);
+    return 0;
 }
 
 int read_sp_2(lua_State* L);
@@ -70,7 +69,7 @@ int read_sp(lua_State* L) {
     lua_pushvalue(L, 1); // the callback
     lua_pushvalue(L, arr_index);
     lua_pushcclosure(L, read_sp_2, 2);
-    printf("Calling 1\n");
+    lua_pushcclosure(L, delay_handler, 1);
     lua_call(L, 3, 0);
     return 0;
 }
@@ -85,7 +84,7 @@ int read_sp_2(lua_State* L) {
     lua_pushvalue(L, lua_upvalueindex(2));
     lua_pushvalue(L, arr_index);
     lua_pushcclosure(L, read_sp_3, 3);
-    printf("Calling 2\n");
+    lua_pushcclosure(L, delay_handler, 1);
     lua_call(L, 3, 0);
     return 0;
 }
@@ -101,7 +100,7 @@ int read_sp_3(lua_State* L) {
     lua_pushvalue(L, lua_upvalueindex(3));
     lua_pushvalue(L, arr_index);
     lua_pushcclosure(L, read_sp_tail, 4);
-    printf("Calling 3\n");
+    lua_pushcclosure(L, delay_handler, 1);
     lua_call(L, 3, 0);
     return 0;
 }
@@ -160,31 +159,28 @@ int write_sp(lua_State* L) {
     lua_pushvalue(L, 2); // callback
     lua_pushvalue(L, arr_index);
     lua_pushcclosure(L, write_sp_2, 2);
-    printf("Finished write 1\n");
+    lua_pushcclosure(L, delay_handler, 1);
     lua_call(L, 3, 0);
     return 0;
 }
 
 int write_sp_2(lua_State* L) {
-    flash_write_delay();
     lua_pushlightfunction(L, libstorm_flash_write);
     lua_pushnumber(L, 1 << PAGE_EXP);
     lua_pushvalue(L, lua_upvalueindex(2));
     lua_pushvalue(L, lua_upvalueindex(1)); // callback
     lua_pushvalue(L, lua_upvalueindex(2));
     lua_pushcclosure(L, write_sp_3, 2);
-    printf("Finished write 2\n");
+    lua_pushcclosure(L, delay_handler, 1);
     lua_call(L, 3, 0);
     return 0;
 }
 
 int write_sp_3(lua_State* L) {
-    flash_write_delay();
     lua_pushlightfunction(L, libstorm_flash_write);
     lua_pushnumber(L, 2 << PAGE_EXP);
     lua_pushvalue(L, lua_upvalueindex(2));
     lua_pushvalue(L, lua_upvalueindex(1)); // callback
-    printf("Finished write 3\n");
     lua_call(L, 3, 0);
     return 0;
 }
@@ -205,7 +201,7 @@ int write_sp_3(lua_State* L) {
     Total of 112 bits (14 bytes) per entry
 **/
 
-// write_log_entry(time_offset, backh, bottomh, backf, 
+// write_log_entry(time_offset, backh, bottomh, backf, bottomf, temp, hum, occ)
 int write_log_entry(lua_State* L) {
     return 0;
 }
