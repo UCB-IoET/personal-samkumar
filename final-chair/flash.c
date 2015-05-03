@@ -175,23 +175,32 @@ int write_log_entry_cleanup(lua_State* L);
 // write_log_entry(time_offset, backh, bottomh, backf, bottomf, temp, hum, occ, reboot, callback)
 int write_log_entry(lua_State* L) {
     int i, arr_index;
+    uint8_t known_time;
     uint8_t bytes[LOG_ENTRY_LEN];
+    uint32_t timeshift1, timeshift2;
+    uint64_t uppertime, seconds, time;
     
-    lua_pushlightfunction(L, libstorm_os_now);
-    lua_pushnumber(L, 2);
-    lua_call(L, 1, 1);
-    uint32_t timeshift1 = (uint32_t) lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    lua_pushlightfunction(L, libstorm_os_now);
-    lua_pushnumber(L, 3);
-    lua_call(L, 1, 1);
-    uint32_t timeshift2 = (uint32_t) lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    
-    // we can ignore timer_getnow(). It is 16 bits and milliseconds are 375 ticks, so we'll be off by at most 175 ms, which is OK.
-    uint64_t uppertime = (((uint64_t) timeshift2) << 32) | ((uint64_t) timeshift1);
-    uint64_t seconds = (uint64_t) (8192 * uppertime / 46875.0); // convert to seconds
-    uint64_t time = seconds + luaL_checkint(L, 1);
+    if (lua_isnil(L, 1)) {
+        time = 0;
+        known_time = 1;
+    } else {
+        lua_pushlightfunction(L, libstorm_os_now);
+        lua_pushnumber(L, 2);
+        lua_call(L, 1, 1);
+        timeshift1 = (uint32_t) lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        lua_pushlightfunction(L, libstorm_os_now);
+        lua_pushnumber(L, 3);
+        lua_call(L, 1, 1);
+        timeshift2 = (uint32_t) lua_tointeger(L, -1);
+        lua_pop(L, 1);
+        
+        // we can ignore timer_getnow(). It is 16 bits and milliseconds are 375 ticks, so we'll be off by at most 175 ms, which is OK.
+        uppertime = (((uint64_t) timeshift2) << 32) | ((uint64_t) timeshift1);
+        seconds = (uint64_t) (8192 * uppertime / 46875.0); // convert to seconds
+        time = seconds + luaL_checkint(L, 1);
+        known_time = 0;
+    }
     uint32_t timestamp = (uint32_t) time; // At this point I should have seconds since the epoch, so 32 bits wil be OK
     uint8_t backh = (uint8_t) luaL_checkint(L, 2);
     uint8_t bottomh = (uint8_t) luaL_checkint(L, 3);
@@ -200,7 +209,7 @@ int write_log_entry(lua_State* L) {
     uint16_t temperature = (uint16_t) luaL_checkint(L, 6);
     uint16_t humidity = (uint16_t) luaL_checkint(L, 7);
     luaL_checktype(L, 9, LUA_TBOOLEAN);
-    uint8_t secondlastbyte = (((uint8_t) luaL_checkint(L, 8)) << 7) | ((uint8_t) lua_toboolean(L, 9) << 6) | 0x20; // for now, the time is always known
+    uint8_t secondlastbyte = (((uint8_t) luaL_checkint(L, 8)) << 7) | ((uint8_t) lua_toboolean(L, 9) << 6) | (known_time << 5); // for now, the time is always known
     
     *((uint32_t*) bytes) = timestamp;
     bytes[4] = backh;
