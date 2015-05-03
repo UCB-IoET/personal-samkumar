@@ -1,13 +1,6 @@
 #include "libstormarray.h"
 #include "flash.h"
 
-// fs: 23bit address, 1 byte boolean clean, and this is one time redundant
-
-#define SP_LEN 6 // 6 byte fs top
-#define ERROR 0
-
-#define get_sp_bits(a) (a & (1 << 23))
-
 int call_fn(lua_State* L) {
     lua_pushvalue(L, lua_upvalueindex(1));
     lua_pushvalue(L, lua_upvalueindex(2));
