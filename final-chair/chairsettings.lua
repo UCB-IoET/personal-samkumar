@@ -19,6 +19,8 @@ fans = {storm.n.BOTTOM_FAN, storm.n.BACK_FAN}
 
 heaters = {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
 
+storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
+
 for _, heater in pairs(heaters) do
    (function (heater)
          cord.new(function ()
@@ -61,29 +63,30 @@ end
 
 rnqcl = RNQC:new(30000)
 function updateSMAP(full)
-   local payload = {
+   -- Update sMAP
+   local pyld = {
       macaddr = "12345",
       occupancy = storm.n.check_occupancy()
    }
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
-   if full then
-      payload.backh = heaterSettings[storm.n.BACK_HEATER]
-      payload.bottomh = heaterSettings[storm.n.BOTTOM_HEATER]
-      payload.backf = storm.n.quantize_fan(fanSettings[storm.n.BACK_FAN])
-      payload.bottomf = storm.n.quantize_fan(fanSettings[storm.n.BOTTOM_FAN])
-      payload.temperature = temp
-      payload.humidity = humidity
-   end
-   --rnqcl:sendMessage(payload, "ff02::3109", 30002, 600, 15 * storm.os.MILLISECOND)
+   pyld.backh = heaterSettings[storm.n.BACK_HEATER]
+   pyld.bottomh = heaterSettings[storm.n.BOTTOM_HEATER]
+   pyld.backf = fanSettings[storm.n.BACK_FAN]
+   pyld.bottomf = fanSettings[storm.n.BOTTOM_FAN]
+   pyld.temperature = temp
+   pyld.humidity = humidity
+   --rnqcl:sendMessage(pyld, "ff02::3109", 30002, 600, 15 * storm.os.MILLISECOND)
    
    -- Update the phone
    local occ = 0
-   if payload.occupancy then
+   if pyld.occupancy then
       occ = 1
    end
-   local strpayload = storm.n.pack_string(heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], occ, temp, humidity)
-   storm.n.bl_PECS_send(strpayload)
+   local strpyld = storm.n.pack_string(pyld.backh, pyld.bottomh, pyld.backf, pyld.bottomf, occ, temp, humidity)
+   storm.n.bl_PECS_send(strpyld)
    
+   -- Log to Flash
+   storm.n.flash_write_log(nil, pyld.backh, pyld.bottomh, pyld.backf, pyld.bottomf, temp, humidity, occ, false, function () print("Logged") end)
    print("Updated")
 end
 

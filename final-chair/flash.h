@@ -15,5 +15,6 @@ int libstorm_flash_write(lua_State* L);
     { LSTRKEY("flash_read_sp"), LFUNCVAL(read_sp) }, \
     { LSTRKEY("flash_write_sp"), LFUNCVAL(write_sp) }, \
     { LSTRKEY("flash_reset_log"), LFUNCVAL(reset_log) }, \
+    { LSTRKEY("flash_get_log_size"), LFUNCVAL(get_log_size) }, \
     { LSTRKEY("flash_write_log"), LFUNCVAL(write_log_entry) }, \
     { LSTRKEY("flash_read_log"), LFUNCVAL(read_log_entry) },

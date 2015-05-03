@@ -153,6 +153,28 @@ int reset_log(lua_State* L) {
     return 0;
 }
 
+int get_log_size_tail(lua_State* L);
+int get_log_size(lua_State* L) {
+    lua_pushlightfunction(L, read_sp);
+    lua_pushvalue(L, 1);
+    lua_pushcclosure(L, get_log_size_tail, 1);
+    lua_call(L, 1, 0);
+    return 0;
+}
+
+int get_log_size_tail(lua_State* L) {
+    uint32_t sp = (uint32_t) luaL_checkint(L, 1);
+    sp -= LOG_START;
+    uint32_t page = sp >> PAGE_EXP;
+    uint32_t page_offset = sp - (page << PAGE_EXP);
+    int entries_per_page = PAGE_SIZE / LOG_ENTRY_LEN;
+    int index = page * entries_per_page + page_offset / LOG_ENTRY_LEN;
+    lua_pushvalue(L, lua_upvalueindex(1));
+    lua_pushnumber(L, index);
+    lua_call(L, 1, 0);
+    return 0;
+}
+
 /** FORMAT OF A LOG ENTRY
     Each log entry has the following format:
     1. Timestamp (32 bits)
