@@ -16,10 +16,10 @@ int32_t __attribute__((naked)) k_syscall_ex_ri32_cptr_u32_vi32ptr(uint32_t id, c
 }
 
 // Define syscalls for using the PECS Bluetooth
-#define bl_PECS_init_syscall() k_syscall_ex_ri32(0x800)
-#define bl_PECS_send_syscall(data, len) k_syscall_ex_ri32_ccptr_u32(0x802, (data), (len))
-#define bl_PECS_receive_syscall(buffer, len, flag) k_syscall_ex_ri32_cptr_u32_vi32ptr(0x803, (buffer), (len), (flag))
-#define bl_PECS_clearbuf_syscall() k_syscall_ex_ri32(0x804)
+#define bl_PECS_init_syscall() k_syscall_ex_ri32(0x5700)
+#define bl_PECS_send_syscall(data, len) k_syscall_ex_ri32_ccptr_u32(0x5702, (data), (len))
+#define bl_PECS_receive_syscall(buffer, len, flag) k_syscall_ex_ri32_cptr_u32_vi32ptr(0x5703, (buffer), (len), (flag))
+#define bl_PECS_clearbuf_syscall() k_syscall_ex_ri32(0x5704)
 
 void print_byte(uint8_t byte) {
     printf("%d\n", byte);

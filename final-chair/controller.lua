@@ -6,6 +6,8 @@ ChairSettings = require "chairsettings"
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
+timediff = nil
+
 controls = {"backh", "bottomh", "backf", "bottomf"}
 fnmap = {
    backh = ChairSettings.setHeater,
@@ -65,14 +67,18 @@ cord.new(function ()
     storm.n.bl_PECS_clear_recv_buf()
     while true do
         print("waiting for bytes")
-        local bytes = cord.nc(storm.n.bl_PECS_receive, 4)
+        local bytes = cord.nc(storm.n.bl_PECS_receive, 5)
         print("got bytes")
-        b1, b2, b3, b4 = storm.n.interpret_string(bytes)
-        ChairSettings.setHeater(storm.n.BACK_HEATER, b1)
-        ChairSettings.setHeater(storm.n.BOTTOM_HEATER, b2)
-        ChairSettings.setFan(storm.n.BACK_FAN, b3)
-        ChairSettings.setFan(storm.n.BOTTOM_FAN, b4)
-        print("Got", b1, b2, b3, b4)
+        b1, b2, b3, b4, b5 = storm.n.interpret_string(bytes)
+        if b5 == 1 then
+            ChairSettings.setHeater(storm.n.BACK_HEATER, b1)
+            ChairSettings.setHeater(storm.n.BOTTOM_HEATER, b2)
+            ChairSettings.setFan(storm.n.BACK_FAN, b3)
+            ChairSettings.setFan(storm.n.BOTTOM_FAN, b4)
+        else
+            ChairSettings.setTimeDiff(storm.n.bytes_to_timestamp(b1, b2, b3, b4) - storm.n.get_kernel_secs())
+        end
+        print("Got", b1, b2, b3, b4, b5)
     end
 end)
 

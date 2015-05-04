@@ -238,8 +238,8 @@ int lua_get_temp_humidity(lua_State* L) {
     double rawhumidity = (double) (reading >> 8); // remove the 8-bit checksum
     double linhumidity = -2.0468 + 0.0367 * rawhumidity - (1.5955e-6) * rawhumidity * rawhumidity;
     double humidity = (ctemp - 25) * (0.01 + 0.00008 * rawhumidity) + linhumidity;
-    int fixedPtTemperature = (int) (temperature * 1000);
-    int fixedPtHumidity = (int) (humidity * 1000); // * 1000 fixed point
+    int fixedPtTemperature = (int) (temperature * 100);
+    int fixedPtHumidity = (int) (humidity * 100); // * 100 fixed point
     lua_pushnumber(L, fixedPtTemperature);
     lua_pushnumber(L, fixedPtHumidity);
     return 2;

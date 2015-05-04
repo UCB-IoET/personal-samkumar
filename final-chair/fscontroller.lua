@@ -8,6 +8,8 @@ local brd = LED:new("GP0")
 
 local rnqcl = RNQC:new(60000)
 
+local shell_ip = "2001:470:1f04:5f2::2"
+
 TOPORT = 60004
 
 TEST_IP = "ff02::beef"
@@ -36,11 +38,13 @@ forwardSocket = storm.net.udpsocket(30001, function (payload, ip, port)
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
 chairForwarder = RNQS:new(30002, function (payload, ip, port)
-			     storm.net.sendto(forwardSocket, storm.mp.pack(payload), "2001:470:1f04:5f2::2", 38003)
-			     return {rv = "ok"}
+                     payload["fromIP"] = ip
+                     print(ip)
+                     payload["myIP"] = storm.os.getipaddrstring()
+                     storm.net.sendto(forwardSocket, storm.mp.pack(payload), shell_ip, 38003)
+                     return {rv = "ok"}
 				 end)
-
-
+				 
 sh = require "stormsh"
 sh.start()
 
