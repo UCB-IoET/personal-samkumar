@@ -21,6 +21,12 @@ heaters = {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
 
 storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
 
+timediff = nil
+
+function setTimeDiff(diff)
+    timediff = diff
+end
+
 for _, heater in pairs(heaters) do
    (function (heater)
          cord.new(function ()
@@ -86,7 +92,7 @@ function updateSMAP(full)
    storm.n.bl_PECS_send(strpyld)
    
    -- Log to Flash
-   storm.n.flash_write_log(nil, pyld.backh, pyld.bottomh, pyld.backf, pyld.bottomf, temp, humidity, occ, false, function () print("Logged") end)
+   storm.n.flash_write_log(timediff, pyld.backh, pyld.bottomh, pyld.backf, pyld.bottomf, temp, humidity, occ, false, function () print("Logged") end)
    print("Updated")
 end
 
@@ -113,6 +119,7 @@ storm.os.invokePeriodically(
    end
 )
 
+Settings.setTimeDiff = setTimeDiff
 Settings.setHeater = setHeater
 Settings.setFan = setFan
 Settings.updateSMAP = updateSMAP
