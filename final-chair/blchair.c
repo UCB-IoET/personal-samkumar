@@ -21,6 +21,10 @@ int32_t __attribute__((naked)) k_syscall_ex_ri32_cptr_u32_vi32ptr(uint32_t id, c
 #define bl_PECS_receive_syscall(buffer, len, flag) k_syscall_ex_ri32_cptr_u32_vi32ptr(0x5703, (buffer), (len), (flag))
 #define bl_PECS_clearbuf_syscall() k_syscall_ex_ri32(0x5704)
 
+int do_nothing(lua_State* L) {
+    return 0;
+}
+
 void print_byte(uint8_t byte) {
     printf("%d\n", byte);
 }
@@ -52,13 +56,52 @@ int bl_PECS_receive(lua_State* L) {
 }
 
 int bl_PECS_receive_tail(lua_State* L) {
+    printf("polling\n");
     if (bl_receive_flag) {
         lua_pushlstring(L, bl_receive_buffer, bl_receive_flag);
+        printf("got something\n");
         return cord_return(L, 1);
     } else {
         cord_set_continuation(L, bl_PECS_receive_tail, 0);
         return nc_invoke_sleep(L, 250 * MILLISECOND_TICKS);
     }
+}
+
+int bl_PECS_receive_tail_cb(lua_State* L);
+// Must be called if you plan to receive using a callback.
+int bl_PECS_receive_cb_init(lua_State* L) {
+    lua_pushlightfunction(L, do_nothing);
+    lua_setglobal(L, "bl_cb");
+    lua_pushlightfunction(L, libstorm_os_invoke_periodically);
+    lua_pushnumber(L, 100 * MILLISECOND_TICKS);
+    lua_pushlightfunction(L, bl_PECS_receive_tail_cb);
+    lua_call(L, 2, 0);
+    return 0;
+}
+
+int bl_PECS_receive_cb(lua_State* L) {
+    int toRead = luaL_checkint(L, 1);
+    if (toRead > 20) {
+        return 0;
+    }
+    
+    lua_pushvalue(L, 2); // the callback
+    lua_setglobal(L, "bl_cb");
+    
+    bl_receive_flag = 0;
+    bl_PECS_receive_syscall(bl_receive_buffer, toRead, &bl_receive_flag);
+    
+    return 0;
+}
+
+int bl_PECS_receive_tail_cb(lua_State* L) {
+    if (bl_receive_flag) {
+        lua_getglobal(L, "bl_cb"); // the callback
+        lua_pushlstring(L, bl_receive_buffer, bl_receive_flag);
+        bl_receive_flag = 0;
+        lua_call(L, 1, 0);
+    }
+    return 0;
 }
 
 int bl_PECS_clear_recv_buf(lua_State* L) {

@@ -64,11 +64,10 @@ end)
 
 cord.new(function ()
     storm.n.bl_PECS_init()
+    storm.n.bl_PECS_receive_cb_init();
     storm.n.bl_PECS_clear_recv_buf()
     while true do
-        print("waiting for bytes")
-        local bytes = cord.nc(storm.n.bl_PECS_receive, 5)
-        print("got bytes")
+        local bytes = cord.await(storm.n.bl_PECS_receive_cb, 5)
         b1, b2, b3, b4, b5 = storm.n.interpret_string(bytes)
         if b5 == 1 then
             ChairSettings.setHeater(storm.n.BACK_HEATER, b1)

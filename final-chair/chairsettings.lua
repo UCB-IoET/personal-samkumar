@@ -28,28 +28,19 @@ function setTimeDiff(diff)
 end
 
 for _, heater in pairs(heaters) do
-   (function (heater)
-         cord.new(function ()
-               local setting = nil
-               while true do
-                  setting = 10 * heaterSettings[heater] * storm.os.MILLISECOND
-                  if not storm.n.check_occupancy() then
-                     setting = 0
-                  end
-                  if setting <= 0 then
-                     cord.yield()
-                  else
-                     storm.n.set_heater_state(heater, storm.n.ON)
-                     cord.await(storm.os.invokeLater, setting)
-                  end
-                  if setting >= storm.os.SECOND then
-                     cord.yield()
-                  else
-                     storm.n.set_heater_state(heater, storm.n.OFF)
-                     cord.await(storm.os.invokeLater, storm.os.SECOND - setting)
-                  end
-               end
-       end)
+    (function (heater)
+        storm.os.invokePeriodically(storm.os.SECOND, function ()
+            local setting = 10 * heaterSettings[heater] * storm.os.MILLISECOND
+            if not storm.n.check_occupancy() then
+                setting = 0
+            end
+            if setting > 0 then
+                storm.n.set_heater_state(heater, storm.n.ON)
+            end
+            if setting < storm.os.SECOND then
+                storm.os.invokeLater(setting, storm.n.set_heater_state, heater, storm.n.OFF)
+            end
+        end)
     end)(heater)
 end
 
