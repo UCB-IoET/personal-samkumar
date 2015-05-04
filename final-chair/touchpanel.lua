@@ -49,6 +49,8 @@ end
 TP_IRQ = storm.io.D7
 
 storm.io.set_mode(storm.io.INPUT, TP_IRQ)
+storm.io.set_mode(storm.io.OUTPUT, storm.io.D6)
+storm.io.set(1, storm.io.D6)
 
 
 count = 0
@@ -65,7 +67,11 @@ function handle_change()
            count = count + 1
            if count == 4 then
               print("Resetting")
-              storm.os.reset()
+              storm.io.set(0, storm.io.D6)
+              storm.os.invokeLater(storm.os.MILLISECOND * 2000, function ()
+                                      storm.io.set(1, storm.io.D6)
+                                      storm.os.reset()
+              end)
            end
            -- Call this to read the touchpanel values over SPI
            -- currently doesn't work, returns 0
