@@ -62,7 +62,7 @@ rnqcl = RNQC:new(30000)
 function updateSMAP(full)
    -- Update sMAP
    local pyld = {
-      macaddr = "12345",
+      macaddr = CHAIR_ID,
       occupancy = storm.n.check_occupancy()
    }
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
@@ -72,7 +72,7 @@ function updateSMAP(full)
    pyld.bottomf = fanSettings[storm.n.BOTTOM_FAN]
    pyld.temperature = temp
    pyld.humidity = humidity
-   --rnqcl:sendMessage(pyld, "ff02::3109", 30002, 600, 15 * storm.os.MILLISECOND)
+   rnqcl:sendMessage(pyld, "ff02::3109", 30002, 400, 18 * storm.os.MILLISECOND)
    
    -- Update the phone
    local occ = 0

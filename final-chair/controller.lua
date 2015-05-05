@@ -2,7 +2,10 @@
 
 require "cord"
 RNQS = require "rnqServer"
+Settings = require "settings"
 ChairSettings = require "chairsettings"
+
+Settings.startup()
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 

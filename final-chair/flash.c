@@ -92,12 +92,14 @@ int read_sp_tail(lua_State* L) {
         } else {
             sp = sp3;
         }
+        lua_pushlightfunction(L, libstorm_os_invoke_later);
+        lua_pushnumber(L, 30 * MILLISECOND_TICKS);
         lua_pushlightfunction(L, write_sp);
         lua_pushnumber(L, sp);
         lua_pushvalue(L, lua_upvalueindex(1));
         lua_pushnumber(L, sp);
         lua_pushcclosure(L, call_fn, 2);
-        lua_call(L, 2, 0);
+        lua_call(L, 4, 0);
     }
     return 0;
 }
