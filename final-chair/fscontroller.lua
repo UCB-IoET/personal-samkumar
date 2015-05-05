@@ -20,7 +20,7 @@ function sendActuationMessage(payload, address, ip)
    brd:flash()
    local toIP = payload["toIP"]
    payload["toIP"] = nil
-   rnqcl:sendMessage(payload, TEST_IP, TOPORT, nil, nil, function () print("trying") end, function (payload, address, port)
+   rnqcl:sendMessage(payload, toIP, TOPORT, nil, nil, function () print("trying") end, function (payload, address, port)
 			if payload == nil then
 			   print("Send FAILS.")
 			else

@@ -21,3 +21,5 @@ with open("settings.lua", "w") as init:
     init.write("end\n")
     init.write("Settings.startup = startup\n")
     init.write("return Settings")
+
+subprocess.call(["cd /home/oski/workspace/ && ./build.lua"], shell=True)
