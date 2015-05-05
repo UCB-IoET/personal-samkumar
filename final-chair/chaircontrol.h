@@ -110,4 +110,5 @@ int check_occupancy(lua_State* L);
     { LSTRKEY( "set_occupancy_mode" ), LFUNCVAL( set_occupancy_mode ) }, \
     { LSTRKEY( "quantize_fan"), LFUNCVAL( quantize_fan ) }, \
     { LSTRKEY( "set_temp_mode"), LFUNCVAL( set_temp_mode ) }, \
-    { LSTRKEY( "get_temp_humidity" ), LFUNCVAL( lua_get_temp_humidity ) },
+    { LSTRKEY( "get_temp_humidity" ), LFUNCVAL( lua_get_temp_humidity ) }, \
+    { LSTRKEY( "enable_reset" ), LFUNCVAL( enable_reset ) },
