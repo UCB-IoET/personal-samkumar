@@ -251,64 +251,69 @@ int reset_counter(lua_State* L) {
     return 0;
 }
 
-#define HMSOFT_RESET_PIN = 6  // storm.io.D6
-#define TP_IRQ = 7  // storm.io.D7
+#define HMSOFT_RESET_PIN 6  // storm.io.D6
+#define TP_IRQ 7  // storm.io.D7
 
 int enable_hmsoft_and_reset(lua_State* L) {
     // storm.io.set(1, HMSOFT_RESET_PIN)
     lua_pushlightfunction(L, libstorm_io_set);
     lua_pushnumber(L, 1);
     lua_pushnumber(L, HMSOFT_RESET_PIN);
-    lua_call(L, 2);
+    lua_call(L, 2, 0);
     // storm.os.reset()
     lua_pushlightfunction(L, libstorm_os_reset);
-    lua_call(L, 0);
+    lua_call(L, 0, 0);
     return 0;
 }
 
 int handle_tap(lua_State* L) {
+    printf("Tap received\n");
     // count = count + 1
-    int count = lua_getglobal(L, "__reset_counter");
+    lua_getglobal(L, "__reset_counter");
+    int count = lua_tointeger(L, -1);
     count++;
+    lua_pushnumber(L, count);
     lua_setglobal(L, "__reset_counter");
     // if count == 4
-    if count == 4 {
-        printf("Resetting because of tap sequence");
+    if (count == 4) {
+        printf("Resetting because of tap sequence\n");
         // storm.io.set(0, HMSOFT_RESET)
         lua_pushlightfunction(L, libstorm_io_set);
         lua_pushnumber(L, 0);
         lua_pushnumber(L, HMSOFT_RESET_PIN);
-        lua_call(L, 2);
+        lua_call(L, 2, 0);
         lua_pushlightfunction(L, libstorm_os_invoke_later);
         lua_pushnumber(L, 2000 * MILLISECOND_TICKS);
         lua_pushlightfunction(L, enable_hmsoft_and_reset);
-        lua_call(L, 2);
+        lua_call(L, 2, 0);
+        return 0;
     }
-    // storm.os.watch_single(storm.io.FALLING, storm.io.D7, handle_change)
+    // storm.os.watch_single(storm.io.FALLING, TP_IRQ, handle_change)
     lua_pushlightfunction(L, libstorm_io_watch_single);
     lua_pushnumber(L, 2);  // storm.io.FALLING = 2
-    lua_pushnumber(L, 0x0013);  // storm.io.D7
+    lua_pushnumber(L, TP_IRQ);
     lua_pushlightfunction(L, handle_tap);
     lua_call(L, 3, 0);
     return 0;
 }
 
 int enable_reset(lua_State* L) {
+    printf("Enabling reset\n");
     //  storm.io.set_mode(storm.io.INPUT, TP_IRQ)
     lua_pushlightfunction(L, libstorm_io_set_mode);
-    lua_pushlightfunction(L, 1);  // storm.io.INPUT
-    lua_pushlightfunction(L, TP_IRQ);
-    lua_call(L, 2);
+    lua_pushnumber(L, 1);  // storm.io.INPUT
+    lua_pushnumber(L, TP_IRQ);
+    lua_call(L, 2, 0);
     //  storm.io.set_mode(storm.io.OUTPUT, HMSOFT_RESET_PIN)
     lua_pushlightfunction(L, libstorm_io_set_mode);
-    lua_pushlightfunction(L, 0);  // storm.io.OUTPUT
-    lua_pushlightfunction(L, HMSOFT_RESET_PIN);
-    lua_call(L, 2);
+    lua_pushnumber(L, 0);  // storm.io.OUTPUT
+    lua_pushnumber(L, HMSOFT_RESET_PIN);
+    lua_call(L, 2, 0);
     // storm.io.set(1, HMSOFT_RESET_PIN)
     lua_pushlightfunction(L, libstorm_io_set);
-    lua_pushlightfunction(L, 1);
-    lua_pushlightfunction(L, HMSOFT_RESET_PIN);
-    lua_call(L, 2);
+    lua_pushnumber(L, 1);
+    lua_pushnumber(L, HMSOFT_RESET_PIN);
+    lua_call(L, 2, 0);
     // __reset_counter = 0
     lua_pushnumber(L, 0);
     lua_setglobal(L, "__reset_counter");
@@ -317,10 +322,10 @@ int enable_reset(lua_State* L) {
     lua_pushnumber(L, 1000 * MILLISECOND_TICKS);
     lua_pushlightfunction(L, reset_counter);
     lua_call(L, 2, 0);
-    // storm.os.watch_single(storm.io.FALLING, storm.io.D7, handle_change)
+    // storm.os.watch_single(storm.io.FALLING, TP_IRQ, handle_change)
     lua_pushlightfunction(L, libstorm_io_watch_single);
     lua_pushnumber(L, 2);  // storm.io.FALLING = 2
-    lua_pushnumber(L, 0x0013);  // storm.io.D7
+    lua_pushnumber(L, TP_IRQ);
     lua_pushlightfunction(L, handle_tap);
     lua_call(L, 3, 0);
     return 0;
