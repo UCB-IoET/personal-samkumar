@@ -59,7 +59,7 @@ end
     
 
 rnqcl = RNQC:new(30000)
-function updateSMAP(full)
+function updateSMAP()
    -- Update sMAP
    local pyld = {
       macaddr = CHAIR_ID,
@@ -87,7 +87,7 @@ function updateSMAP(full)
    print("Updated")
 end
 
-storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP, false)
+storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP)
 
 local last_occupancy_state = false
 storm.os.invokePeriodically(
