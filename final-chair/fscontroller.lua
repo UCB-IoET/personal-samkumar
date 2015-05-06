@@ -1,10 +1,7 @@
 require "cord"
 require "storm"
-RNQC = require "rnqClient"
-RNQS = require "rnqServer"
-LED = require "led"
-
-local brd = LED:new("GP0")
+RNQC = storm.n.RNQClient
+RNQS = storm.n.RNQServer
 
 local rnqcl = RNQC:new(60000)
 
@@ -13,7 +10,6 @@ local shell_ip = "2001:470:1f04:5f2::2"
 TOPORT = 60004
 
 function sendActuationMessage(payload, address, ip)
-   brd:flash()
    local toIP = payload["toIP"]
    payload["toIP"] = nil
    print("Actuating " .. toIP)

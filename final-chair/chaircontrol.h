@@ -84,6 +84,9 @@ int set_fan_state(lua_State* L);
 int set_occupancy_mode(lua_State* L);
 int check_occupancy(lua_State* L);
 
+// I think this should be in libstorm.h
+int libstorm_os_reset(lua_State* L);
+
 #define CHAIRCONTROL_SYMBOLS \
     { LSTRKEY( "BOTTOM_HEATER" ), LNUMVAL( BOTTOM_HEATER ) }, \
     { LSTRKEY( "BACK_HEATER" ), LNUMVAL( BACK_HEATER ) }, \

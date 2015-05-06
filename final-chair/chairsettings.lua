@@ -1,5 +1,4 @@
 require "cord"
-RNQC = require "rnqClient"
 local Settings = {}
 
 storm.n.set_occupancy_mode(storm.n.ENABLE)
@@ -58,7 +57,7 @@ function setFan(fan, setting)
 end
     
 
-rnqcl = RNQC:new(30000)
+rnqcl = storm.n.RNQClient:new(30000)
 function updateSMAP()
    -- Update sMAP
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)

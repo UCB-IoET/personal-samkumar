@@ -4,10 +4,11 @@ Settings.startup()
 Settings = nil
 
 require "cord"
-RNQS = require "rnqServer"
 ChairSettings = require "chairsettings"
 
-server = RNQS:new(60004, storm.n.actuation_handler)
+storm.n.enable_reset()
+
+server = storm.n.RNQServer:new(60004, storm.n.actuation_handler)
 
 cord.new(function ()
     storm.n.bl_PECS_init()
