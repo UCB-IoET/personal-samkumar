@@ -12,14 +12,11 @@ local shell_ip = "2001:470:1f04:5f2::2"
 
 TOPORT = 60004
 
-TEST_IP = "ff02::beef"
-
-MY_IP = "2001:470:4956:2:212:6d02:0:3109"
-
 function sendActuationMessage(payload, address, ip)
    brd:flash()
    local toIP = payload["toIP"]
    payload["toIP"] = nil
+   print("Actuating " .. toIP)
    rnqcl:sendMessage(payload, toIP, TOPORT, nil, nil, function () print("trying") end, function (payload, address, port)
 			if payload == nil then
 			   print("Send FAILS.")
@@ -38,11 +35,21 @@ forwardSocket = storm.net.udpsocket(30001, function (payload, ip, port)
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
 chairForwarder = RNQS:new(30002, function (payload, ip, port)
-                     payload["fromIP"] = ip
                      print(ip)
-                     payload["myIP"] = storm.os.getipaddrstring()
                      
-                     storm.net.sendto(forwardSocket, storm.mp.pack(payload), shell_ip, 38003)
+                     local msg = storm.mp.pack(payload)
+                     print(#msg)
+                     
+                     storm.net.sendto(forwardSocket, msg, shell_ip, 38003)
+                     
+                     storm.os.invokeLater(250 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
+                     storm.os.invokeLater(500 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
+                     storm.os.invokeLater(1000 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
+                     storm.os.invokeLater(1500 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
+                     storm.os.invokeLater(2000 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
+                     storm.os.invokeLater(2500 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
+                     storm.os.invokeLater(3000 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
+                     
                      return {rv = "ok"}
 				 end)
 				 

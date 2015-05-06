@@ -61,29 +61,20 @@ end
 rnqcl = RNQC:new(30000)
 function updateSMAP()
    -- Update sMAP
-   local pyld = {
-      macaddr = CHAIR_ID,
-      occupancy = storm.n.check_occupancy()
-   }
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
-   pyld.backh = heaterSettings[storm.n.BACK_HEATER]
-   pyld.bottomh = heaterSettings[storm.n.BOTTOM_HEATER]
-   pyld.backf = fanSettings[storm.n.BACK_FAN]
-   pyld.bottomf = fanSettings[storm.n.BOTTOM_FAN]
-   pyld.temperature = temp
-   pyld.humidity = humidity
-   rnqcl:sendMessage(pyld, "ff02::3109", 30002, 400, 18 * storm.os.MILLISECOND)
+   local pyld = { storm.os.nodeid(), storm.n.check_occupancy(), heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], temp, humidity }
+   rnqcl:sendMessage(pyld, "ff02::3113", 30002, 300, 18 * storm.os.MILLISECOND, function () print("trying") end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
    
    -- Update the phone
    local occ = 0
-   if pyld.occupancy then
+   if pyld[2] then
       occ = 1
    end
-   local strpyld = storm.n.pack_string(pyld.backh, pyld.bottomh, pyld.backf, pyld.bottomf, occ, temp, humidity)
+   local strpyld = storm.n.pack_string(pyld[3], pyld[4], pyld[5], pyld[6], occ, temp, humidity)
    storm.n.bl_PECS_send(strpyld)
    
    -- Log to Flash
-   storm.n.flash_write_log(timediff, pyld.backh, pyld.bottomh, pyld.backf, pyld.bottomf, temp, humidity, occ, false, function () print("Logged") end)
+   storm.n.flash_write_log(timediff, pyld[3], pyld[4], pyld[5], pyld[6], temp, humidity, occ, false, function () print("Logged") end)
    print("Updated")
 end
 
