@@ -181,7 +181,7 @@ int bl_handler(lua_State* L) {
         lua_pushvalue(L, 4);
         lua_call(L, 4, 1);
         lua_pushlightfunction(L, get_kernel_secs);
-        lua_call(L, 0, 0);
+        lua_call(L, 0, 1);
         int diff = lua_tointeger(L, -2) - lua_tointeger(L, -1);
         lua_pop(L, 2);
         lua_pushnumber(L, diff);

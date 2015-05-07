@@ -10,6 +10,8 @@ local shell_ip = "2001:470:1f04:5f2::2"
 TOPORT = 60004
 
 function sendActuationMessage(payload, address, ip)
+   print("Got actuation message")
+   payload = storm.mp.unpack(payload)
    local toIP = payload["toIP"]
    payload["toIP"] = nil
    print("Actuating " .. toIP)
@@ -22,9 +24,11 @@ function sendActuationMessage(payload, address, ip)
 							   end)
 end
 
-server = RNQS:new(60001, sendActuationMessage)
+server = storm.net.udpsocket(60001, sendActuationMessage)
 
 forwardSocket = storm.net.udpsocket(30001, function (payload, ip, port)
+                        print("Got data on forward socket")
+                        print(payload)
 				       return nil
 					   end)
 
@@ -37,7 +41,6 @@ chairForwarder = RNQS:new(30002, function (payload, ip, port)
                      print(#msg)
                      
                      storm.net.sendto(forwardSocket, msg, shell_ip, 38003)
-                     
                      storm.os.invokeLater(250 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
                      storm.os.invokeLater(500 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
                      storm.os.invokeLater(1000 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)

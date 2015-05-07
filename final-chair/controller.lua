@@ -17,6 +17,7 @@ cord.new(function ()
     while true do
         local bytes = cord.await(storm.n.bl_PECS_receive_cb, 5)
         b1, b2, b3, b4, b5 = storm.n.interpret_string(bytes)
+        print("using bl handler")
         storm.n.bl_handler(b1, b2, b3, b4, b5)
         print("Got", b1, b2, b3, b4, b5)
     end
