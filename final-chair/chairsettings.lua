@@ -62,7 +62,7 @@ function updateSMAP()
    -- Update sMAP
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
    local pyld = { storm.os.nodeid(), storm.n.check_occupancy(), heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], temp, humidity }
-   rnqcl:sendMessage(pyld, "ff02::3113", 30002, 300, 18 * storm.os.MILLISECOND, function () end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
+   rnqcl:sendMessage(pyld, "ff02::1", 30002, 300, 18 * storm.os.MILLISECOND, function () end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
    
    -- Update the phone
    local occ = 0
