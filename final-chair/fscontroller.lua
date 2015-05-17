@@ -48,7 +48,7 @@ chairForwarder = RNQS:new(30002,
                              to_server:sendMessage(msg,
                                                    sever_ip,
                                                    38003,
-                                                   1000,
+                                                   100,
                                                    100 * storm.os.MILLISECOND,
                                                    nil,
                                                    function (msg)
