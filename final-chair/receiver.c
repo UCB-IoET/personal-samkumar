@@ -1,5 +1,7 @@
 #include "receiver.h"
 
+int32_t timediff = 0;
+
 /* function (msgTable, ip, port)
       print("got")
       pt(msgTable)
@@ -172,8 +174,7 @@ int bl_handler(lua_State* L) {
         lua_pushvalue(L, 4);
         lua_call(L, 2, 0);
     } else {
-        lua_pushstring(L, "setTimeDiff");
-        lua_gettable(L, settings_index);
+        lua_pushlightfunction(L, set_time_diff);
         lua_pushlightfunction(L, bytes_to_timestamp);
         lua_pushvalue(L, 1);
         lua_pushvalue(L, 2);
@@ -195,5 +196,53 @@ int to_hex_str(lua_State* L) {
     char str[5];
     sprintf(str, "%x", num);
     lua_pushlstring(L, str, 4);
+    return 1;
+}
+
+int get_time(lua_State* L) {
+    if (timediff) {
+        lua_pushlightfunction(L, get_time_always);
+        lua_call(L, 0, 1);
+    } else {
+        lua_pushnil(L);
+    }
+    return 1;
+}
+
+int get_time_always(lua_State* L) {
+    lua_pushlightfunction(L, get_kernel_secs);
+    lua_call(L, 0, 1);
+    int32_t time = (int32_t) lua_tointeger(L, -1) + timediff;
+    lua_pop(L, 1);
+    lua_pushnumber(L, time);
+    return 1;
+}
+
+int get_time_diff(lua_State* L) {
+    if (timediff) {
+        lua_pushnumber(L, timediff);
+    } else {
+        lua_pushnil(L);
+    }
+    return 1;
+}
+
+int set_time_diff(lua_State* L) {
+    int32_t newtimediff = (int32_t) luaL_checkint(L, 1);
+    if (timediff) {
+        timediff = (int32_t) (timediff + ALPHA * newtimediff);
+    } else {
+        timediff = newtimediff;
+    }
+    return 0;
+}
+
+int compute_time_diff(lua_State* L) {
+    int64_t t0 = (int64_t) luaL_checkint(L, 1);
+    int64_t t1 = (int64_t) luaL_checkint(L, 2);
+    int64_t t2 = (int64_t) luaL_checkint(L, 3);
+    int64_t t3 = (int64_t) luaL_checkint(L, 4);
+    int64_t diff = ((t1 - t0) + (t2 - t3)) >> 1;
+    lua_pushnumber(L, (int32_t) diff);
     return 1;
 }

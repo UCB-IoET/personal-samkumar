@@ -45,8 +45,8 @@ chairForwarder = RNQS:new(30002,
                              local msg = storm.mp.pack(payload)
                              print(#msg)
                      
-                             to_server:sendMessage(msg,
-                                                   sever_ip,
+                             to_server:sendMessage(payload,
+                                                   server_ip,
                                                    38003,
                                                    100,
                                                    100 * storm.os.MILLISECOND,
@@ -60,6 +60,36 @@ chairForwarder = RNQS:new(30002,
                                                    end)
                              return {rv = "ok"}
                           end)
+                                 
+-- Synchronize time with server every 20 seconds
+time_sync = RNQC:new(30003)
+empty = {}
+function synctime()
+    local send_time = storm.n.get_time_always()
+    print("asking for time")
+    time_sync:sendMessage(empty,
+                          server_ip,
+                          38002,
+                          100,
+                          100 * storm.os.MILLISECOND,
+                          nil,
+                          function (msg)
+                             if msg ~= nil then
+                                 print ("got time message " .. msg.time)
+                                 local recv_time = storm.n.get_time_always()
+                                 local diff = storm.n.compute_time_diff(send_time, msg.time, msg.time, recv_time)
+                                 print("Calculated diff " .. diff)
+                                 storm.n.set_time_diff(diff)
+                             else
+                                 print("No time response received")
+                             end
+                          end)
+end
+synctime()
+storm.os.invokePeriodically(20 * storm.os.SECOND, synctime)
+    
+-- Allow chairs to synchronize time with firestorm
+synchronizer = RNQS:new(30004, function () print("Got synchronization request") return {["time"] = storm.n.get_time()} end)
                                  
 sh = require "stormsh"
 sh.start()

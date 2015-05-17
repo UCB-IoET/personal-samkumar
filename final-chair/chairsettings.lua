@@ -20,12 +20,6 @@ heaters = {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
 
 storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
 
-timediff = nil
-
-function setTimeDiff(diff)
-    timediff = diff
-end
-
 for _, heater in pairs(heaters) do
     (function (heater)
         storm.os.invokePeriodically(storm.os.SECOND, function ()
@@ -62,7 +56,7 @@ function updateSMAP()
    -- Update sMAP
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
    local pyld = { storm.os.nodeid(), storm.n.check_occupancy(), heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], temp, humidity }
-   rnqcl:sendMessage(pyld, "ff02::1", 30002, 300, 18 * storm.os.MILLISECOND, function () end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
+   rnqcl:sendMessage(pyld, "ff02::1", 30002, 300, 25 * storm.os.MILLISECOND, function () end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
    
    -- Update the phone
    local occ = 0
@@ -73,7 +67,7 @@ function updateSMAP()
    storm.n.bl_PECS_send(strpyld)
    
    -- Log to Flash
-   storm.n.flash_write_log(timediff, pyld[3], pyld[4], pyld[5], pyld[6], temp, humidity, occ, false, function () print("Logged") end)
+   storm.n.flash_write_log(storm.n.get_time(), pyld[3], pyld[4], pyld[5], pyld[6], temp, humidity, occ, false, function () print("Logged") end)
    print("Updated")
 end
 
@@ -100,7 +94,6 @@ storm.os.invokePeriodically(
    end
 )
 
-Settings.setTimeDiff = setTimeDiff
 Settings.setHeater = setHeater
 Settings.setFan = setFan
 Settings.updateSMAP = updateSMAP

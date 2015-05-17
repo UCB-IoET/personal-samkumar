@@ -77,7 +77,7 @@ int read_sp_tail(lua_State* L) {
     int sp2 = lua_tointeger(L, 2);
     int sp3 = lua_tointeger(L, 3);
     int sp;
-    if (sp1 == sp2 && sp2 == sp3 && ((unsigned int) sp1) < 0x8000) {
+    if (sp1 == sp2 && sp2 == sp3 && sp1 >= 0 && sp1 < 0x600000) {
         lua_pushvalue(L, lua_upvalueindex(1));
         lua_pushnumber(L, sp1);
         lua_call(L, 1, 0);
@@ -92,7 +92,8 @@ int read_sp_tail(lua_State* L) {
         } else {
             sp = sp3;
         }
-        if (((unsigned int) sp) >= 0x8000) {
+        if (sp < 0 || sp >= 0x600000) {
+            printf("Log overflowed: resetting log\n");
             sp = 3 << PAGE_EXP;
         }
         lua_pushlightfunction(L, libstorm_os_invoke_later);
