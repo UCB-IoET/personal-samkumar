@@ -3,9 +3,12 @@ require "storm"
 RNQC = storm.n.RNQClient
 RNQS = storm.n.RNQServer
 
-local rnqcl = RNQC:new(60000)
+rnqcl = RNQC:new(60000)
 
-local shell_ip = "2001:470:1f04:5f2::2"
+shell_ip = "2001:470:1f04:5f2::2"
+proj_ip = "2001:470:66:3f9::2"
+
+server_ip = proj_ip
 
 TOPORT = 60004
 
@@ -15,42 +18,51 @@ function sendActuationMessage(payload, address, ip)
    local toIP = payload["toIP"]
    payload["toIP"] = nil
    print("Actuating " .. toIP)
-   rnqcl:sendMessage(payload, toIP, TOPORT, nil, nil, function () print("trying") end, function (payload, address, port)
+   rnqcl:sendMessage(payload,
+		     toIP,
+		     TOPORT,
+		     nil,
+		     nil,
+		     function ()
+			print("trying")
+		     end,
+		     function (payload, address, port)
 			if payload == nil then
 			   print("Send FAILS.")
 			else
 			   print("Response received.")
 			end
-							   end)
+		     end)
 end
 
-server = storm.net.udpsocket(60001, sendActuationMessage)
+from_server = storm.net.udpsocket(60001, sendActuationMessage)
 
-forwardSocket = storm.net.udpsocket(30001, function (payload, ip, port)
-                        print("Got data on forward socket")
-                        print(payload)
-				       return nil
-					   end)
+to_server = RNQC:new(30001)
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
-chairForwarder = RNQS:new(30002, function (payload, ip, port)
-                     print(ip)
+chairForwarder = RNQS:new(30002,
+			  function (payload, ip, port)
+			     print(ip)
                      
-                     local msg = storm.mp.pack(payload)
-                     print(#msg)
+			     local msg = storm.mp.pack(payload)
+			     print(#msg)
                      
-                     storm.net.sendto(forwardSocket, msg, shell_ip, 38003)
-                     storm.os.invokeLater(250 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
-                     storm.os.invokeLater(500 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
-                     storm.os.invokeLater(1000 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
-                     storm.os.invokeLater(1500 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
-                     storm.os.invokeLater(2000 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
-                     storm.os.invokeLater(2500 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
-                     storm.os.invokeLater(3000 * storm.os.MILLISECOND, storm.net.sendto, forwardSocket, msg, shell_ip, 38003)
-                     
-                     return {rv = "ok"}
-				 end)
+			     to_server:sendMessage(msg,
+						   sever_ip,
+						   38003,
+						   1000,
+						   100 * storm.os.MILLISECOND,
+						   nil,
+						   function (msg)
+						      if msg == nil then
+							 print("Failure")
+						      else
+							 print("Success")
+						      end
+						   end)
+			     return {rv = "ok"}
+			  end)
 				 
 sh = require "stormsh"
 sh.start()
