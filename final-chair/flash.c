@@ -1,6 +1,94 @@
 #include "libstormarray.h"
 #include "flash.h"
 
+int get_time_diff(lua_State* L);
+int read_log_entry(lua_State* L);
+
+// Takes 10 arguments, returns nothing
+int send_data_point(lua_State* L) {
+    lua_createtable(L, 10, 0);
+    int table_index = lua_gettop(L);
+    lua_pushnumber(L, 1);
+    lua_pushlightfunction(L, libstorm_os_getnodeid);
+    lua_call(L, 0, 1);
+    lua_settable(L, table_index);
+    lua_pushnumber(L, 2);
+    lua_pushvalue(L, 8);
+    lua_settable(L, table_index);
+    int i;
+    for (i = 3; i < 9; i++) {
+        lua_pushnumber(L, i);
+        lua_pushvalue(L, i - 1);
+        lua_settable(L, table_index);
+    }
+    lua_getglobal(L, "settings");
+    lua_pushstring(L, "sendPayload");
+    lua_gettable(L, -2);
+    lua_pushvalue(L, table_index);
+    lua_call(L, 1, 0);
+    return 0;
+}
+
+// Deal with backlogs in flash
+int isbacklog = 1;
+int lastsent = 0;
+int tos = 0;
+int process_next_backlog(lua_State* L) {
+    if (!isbacklog) {
+        return 0;
+    }
+    lua_getglobal(L, "backlog_timer");
+    if (lua_toboolean(L, 1) && !lua_isnil(L, -1)) {
+        lua_pushlightfunction(L, libstorm_os_cancel);
+        lua_getglobal(L, "backlog_timer");
+        lua_call(L, 1, 0);
+        lua_pushnil(L);
+        lua_setglobal(L, "backlog_timer");
+    }
+    lua_getglobal(L, "lastsent");
+    int received = lua_toboolean(L, -1);
+    if (received) {
+        lastsent++;
+    }
+    if (lastsent == tos) {
+        isbacklog = 0;
+        return 0;
+    }
+    lua_pushboolean(L, 0);
+    lua_setglobal(L, "lastsent");
+    lua_pushlightfunction(L, get_time_diff);
+    lua_call(L, 0, 1);
+    if (!lua_isnil(L, -1)) {
+        // process first thing in backlog
+        lua_pushlightfunction(L, read_log_entry);
+        lua_pushnumber(L, lastsent);
+        lua_pushlightfunction(L, send_data_point);
+        lua_call(L, 2, 0);
+    }
+    lua_pushlightfunction(L, libstorm_os_invoke_later);
+    lua_pushnumber(L, 20 * SECOND_TICKS);
+    lua_pushlightfunction(L, process_next_backlog);
+    lua_pushboolean(L, 1);
+    lua_call(L, 3, 1);
+    lua_setglobal(L, "backlog_timer");
+    return 0;
+}
+
+int processingbacklog = 0;
+int start_processing_backlog(lua_State* L) {
+    processingbacklog = 1;
+    lastsent = luaL_checkint(L, 1);
+    tos = luaL_checkint(L, 2);
+    lua_pushlightfunction(L, process_next_backlog);
+    lua_call(L, 0, 0);
+    return 0;
+}
+
+int is_processing_backlog(lua_State* L) {
+    lua_pushboolean(L, processingbacklog);
+    return 1;
+}
+
 int call_fn(lua_State* L) {
     lua_pushvalue(L, lua_upvalueindex(1));
     lua_pushvalue(L, lua_upvalueindex(2));
@@ -359,11 +447,7 @@ int read_log_entry_cb(lua_State* L) {
     uint8_t known_time = (secondlastbyte >> 5) & 0x1;
     
     lua_pushvalue(L, lua_upvalueindex(2)); // the callback
-    if (known_time) {
-        lua_pushnumber(L, timestamp);
-    } else {
-        lua_pushnil(L);
-    }
+    lua_pushnumber(L, timestamp);
     lua_pushnumber(L, backh);
     lua_pushnumber(L, bottomh);
     lua_pushnumber(L, backf);
@@ -371,8 +455,9 @@ int read_log_entry_cb(lua_State* L) {
     lua_pushnumber(L, temperature);
     lua_pushnumber(L, humidity);
     lua_pushnumber(L, occ);
-    lua_pushnumber(L, rebooted);
-    lua_call(L, 9, 0);
+    lua_pushboolean(L, rebooted);
+    lua_pushboolean(L, known_time);
+    lua_call(L, 10, 0);
     
     return 0;
 }

@@ -38,6 +38,8 @@ to_server = RNQC:new(30001)
 
 pt = function (t) for k, v in pairs(t) do print(k, v) end end
 
+currport = 10000
+
 chairForwarder = RNQS:new(30002,
                           function (payload, ip, port)
                              print(ip)
@@ -48,7 +50,7 @@ chairForwarder = RNQS:new(30002,
                              to_server:sendMessage(payload,
                                                    server_ip,
                                                    38003,
-                                                   100,
+                                                   30,
                                                    100 * storm.os.MILLISECOND,
                                                    nil,
                                                    function (msg)
@@ -56,6 +58,16 @@ chairForwarder = RNQS:new(30002,
                                                          print("Failure")
                                                       else
                                                          print("Success")
+                                                         local sender = RNQC:new(currport)
+                                                         sender:sendMessage({"rv": "success"},
+                                                                            ip,
+                                                                            29000,
+                                                                            300,
+                                                                            25 * storm.os.MILLISECOND,
+                                                                            nil,
+                                                                            function ()
+                                                                                sender:close()
+                                                                            end)
                                                       end
                                                    end)
                              return {rv = "ok"}
@@ -70,7 +82,7 @@ function synctime()
     time_sync:sendMessage(empty,
                           server_ip,
                           38002,
-                          100,
+                          30,
                           100 * storm.os.MILLISECOND,
                           nil,
                           function (msg)

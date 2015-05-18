@@ -19,4 +19,8 @@ int libstorm_flash_write(lua_State* L);
     { LSTRKEY("flash_reset_log"), LFUNCVAL(reset_log) }, \
     { LSTRKEY("flash_get_log_size"), LFUNCVAL(get_log_size) }, \
     { LSTRKEY("flash_write_log"), LFUNCVAL(write_log_entry) }, \
-    { LSTRKEY("flash_read_log"), LFUNCVAL(read_log_entry) },
+    { LSTRKEY("flash_read_log"), LFUNCVAL(read_log_entry) }, \
+    { LSTRKEY("send_data_point"), LFUNCVAL(send_data_point) }, \
+    { LSTRKEY("process_next_backlog"), LFUNCVAL(process_next_backlog) }, \
+    { LSTRKEY("start_processing_backlog"), LFUNCVAL(start_processing_backlog) }, \
+    { LSTRKEY("is_processing_backlog"), LFUNCVAL(is_processing_backlog) },
