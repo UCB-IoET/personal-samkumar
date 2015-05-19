@@ -12,7 +12,6 @@ server_ip = proj_ip
 
 function sendActuationMessage(payload, srcip, srcport)
    print("Got actuation message")
-   payload = storm.mp.unpack(payload)
    local toIP = payload["toIP"]
    payload["toIP"] = nil
    print("Actuating " .. toIP)
@@ -36,14 +35,11 @@ end
 from_server = RNQS:new(60001, sendActuationMessage)
 to_server = RNQC:new(30001)
 
-pt = function (t) for k, v in pairs(t) do print(k, v) end end
-
 chairForwarder = RNQS:new(30002,
                           function (payload, ip, port)
                              print(ip)
                      
                              local msg = storm.mp.pack(payload)
-                             print(#msg)
                      
                              to_server:sendMessage(payload,
                                                    server_ip,
@@ -52,9 +48,7 @@ chairForwarder = RNQS:new(30002,
                                                    100 * storm.os.MILLISECOND,
                                                    nil,
                                                    function (msg)
-                                                      if msg == nil then
-                                                         print("Failure")
-                                                      else
+                                                      if msg ~= nil then
                                                          print("Success")
                                                       end
                                                    end)
@@ -80,8 +74,6 @@ function synctime()
                                  local diff = storm.n.compute_time_diff(send_time, msg.time, msg.time, recv_time)
                                  print("Calculated diff " .. diff)
                                  storm.n.set_time_diff(diff)
-                             else
-                                 print("No time response received")
                              end
                           end)
 end
