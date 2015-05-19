@@ -9,9 +9,8 @@ shell_ip = "2001:470:1f04:5f2::2"
 proj_ip = "2001:470:66:3f9::2"
 
 server_ip = proj_ip
-
+ok = {["rv"] = "ok"}
 function sendActuationMessage(payload, srcip, srcport)
-   print("Got actuation message")
    local toIP = payload["toIP"]
    payload["toIP"] = nil
    print("Actuating " .. toIP)
@@ -30,6 +29,7 @@ function sendActuationMessage(payload, srcip, srcport)
                            print("Response received.")
                         end
                      end)
+    return ok
 end
 
 from_server = RNQS:new(60001, sendActuationMessage)
