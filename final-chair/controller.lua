@@ -1,7 +1,4 @@
 -- RUNS ON PECS CHAIR BOARD
-Settings = require "settings"
-Settings.startup()
-Settings = nil
 
 -- Turn off the backlight
 BL_CTL = storm.io.D5
