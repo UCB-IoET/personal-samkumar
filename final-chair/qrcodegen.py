@@ -12,7 +12,7 @@ if len(sys.argv) >= 2:
         sys.exit(0)
 
 SERVER = "shell.storm.pm"
-PORT = 38002
+PORT = 37998
 
 serial_number = raw_input("Enter serial number: ")
 blmacaddr = raw_input("Enter bluetooth mac address: ")

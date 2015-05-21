@@ -5,10 +5,11 @@ RNQS = storm.n.RNQServer
 
 rnqcl = RNQC:new(60000)
 
-shell_ip = "2001:470:1f04:5f2::2"
-proj_ip = "2001:470:66:3f9::2"
+--shell_ip = "2001:470:1f04:5f2::2"
+--proj_ip = "2001:470:66:3f9::2"
+cbe_ip = "2607:f140:400:1016:64e8:b809:9713:cd85"
 
-server_ip = proj_ip
+server_ip = cbe_ip
 ok = {["rv"] = "ok"}
 function sendActuationMessage(payload, srcip, srcport)
    local toIP = payload["toIP"]
