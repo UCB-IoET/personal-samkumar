@@ -1,5 +1,3 @@
-require "cord"
-require "storm"
 RNQC = storm.n.RNQClient
 RNQS = storm.n.RNQServer
 
@@ -7,7 +5,7 @@ rnqcl = RNQC:new(60000)
 
 --shell_ip = "2001:470:1f04:5f2::2"
 --proj_ip = "2001:470:66:3f9::2"
-cbe_ip = "2607:f140:400:1016:64e8:b809:9713:cd85"
+cbe_ip = "2001:470:39:375::2"
 
 server_ip = cbe_ip
 ok = {["rv"] = "ok"}
@@ -18,8 +16,8 @@ function sendActuationMessage(payload, srcip, srcport)
    rnqcl:sendMessage(payload,
                      toIP,
                      60004,
-                     nil,
-                     nil,
+                     180,
+                     100 * storm.os.MILLISECOND,
                      function ()
                         print("trying")
                      end,
@@ -83,8 +81,7 @@ storm.os.invokePeriodically(20 * storm.os.SECOND, synctime)
     
 -- Allow chairs to synchronize time with firestorm
 synchronizer = RNQS:new(30004, function () print("Got synchronization request") return {["time"] = storm.n.get_time()} end)
-                                 
-sh = require "stormsh"
-sh.start()
 
-cord.enter_loop()
+while true do
+    storm.os.wait_callback()
+end

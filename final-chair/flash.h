@@ -14,6 +14,7 @@ int libstorm_flash_write(lua_State* L);
 #define FLASH_SYMBOLS \
     { LSTRKEY("bytes_to_timestamp"), LFUNCVAL(bytes_to_timestamp) }, \
     { LSTRKEY("get_kernel_secs"), LFUNCVAL(get_kernel_secs) }, \
+    { LSTRKEY("flash_init"), LFUNCVAL(flash_init) }, \
     { LSTRKEY("flash_read_sp"), LFUNCVAL(read_sp) }, \
     { LSTRKEY("flash_write_sp"), LFUNCVAL(write_sp) }, \
     { LSTRKEY("flash_reset_log"), LFUNCVAL(reset_log) }, \

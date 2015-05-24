@@ -5,24 +5,23 @@ BL_CTL = storm.io.D5
 storm.io.set_mode(storm.io.OUTPUT, BL_CTL)
 storm.io.set(0, BL_CTL)
 
-require "cord"
 ChairSettings = require "chairsettings"
 
 storm.n.enable_reset()
 
 server = storm.n.RNQServer:new(60004, storm.n.actuation_handler)
 
--- Synchronize time with firestorm every 20 seconds
+-- Synchronize time with firestorm every minute
 time_sync = storm.n.RNQClient:new(70000)
 empty = {}
-storm.os.invokePeriodically(20 * storm.os.SECOND, function ()
+storm.os.invokePeriodically(storm.os.MINUTE, function ()
     local send_time = storm.n.get_time_always()
     print("asking for time")
     time_sync:sendMessage(empty,
                           "ff02::1",
                           30004,
-                          300,
-                          25 * storm.os.MILLISECOND,
+                          250,
+                          200 * storm.os.MILLISECOND,
                           nil,
                           function (msg)
                              if msg ~= nil and msg.time ~= nil then
@@ -34,19 +33,26 @@ storm.os.invokePeriodically(20 * storm.os.SECOND, function ()
                           end)
     end)
 
-cord.new(function ()
-    storm.n.bl_PECS_init()
-    storm.n.bl_PECS_receive_cb_init()
-    storm.n.bl_PECS_clear_recv_buf()
-    while true do
-        local bytes = cord.await(storm.n.bl_PECS_receive_cb, 5)
-        b1, b2, b3, b4, b5 = storm.n.interpret_string(bytes)
-        print("using bl handler")
-        storm.n.bl_handler(b1, b2, b3, b4, b5)
-        print("Got", b1, b2, b3, b4, b5)
-    end
+storm.n.bl_PECS_init()
+storm.n.bl_PECS_receive_cb_init()
+storm.n.bl_PECS_clear_recv_buf()
+
+function handle_bl_msg(bytes)
+    b1, b2, b3, b4, b5 = storm.n.interpret_string(bytes)
+    print("using bl handler")
+    storm.n.bl_handler(b1, b2, b3, b4, b5)
+    print("Got", b1, b2, b3, b4, b5)
+    storm.n.bl_PECS_receive_cb(5, handle_bl_msg)
+end
+
+storm.os.invokePeriodically(10 * storm.os.SECOND, function ()
+    print("Imageram " .. storm.os.imageram())
+    print("Using " .. gcinfo())
+    collectgarbage("collect")
 end)
 
-sh = require "stormsh"
-sh.start()
-cord.enter_loop()
+storm.n.bl_PECS_receive_cb(5, handle_bl_msg)
+
+while true do
+    storm.os.wait_callback()
+end

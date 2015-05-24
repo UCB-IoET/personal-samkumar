@@ -1,4 +1,3 @@
-require "cord"
 local Settings = {}
 
 storm.n.set_occupancy_mode(storm.n.ENABLE)
@@ -18,6 +17,7 @@ fans = {storm.n.BOTTOM_FAN, storm.n.BACK_FAN}
 
 heaters = {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
 
+storm.n.flash_init()
 storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
 
 for _, heater in pairs(heaters) do
@@ -56,7 +56,7 @@ function updateSMAP()
    -- Update sMAP
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
    local pyld = { storm.os.nodeid(), storm.n.check_occupancy(), heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], temp, humidity }
-   rnqcl:sendMessage(pyld, "ff02::1", 30002, 300, 25 * storm.os.MILLISECOND, function () end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
+   rnqcl:sendMessage(pyld, "ff02::1", 30002, 150, 180 * storm.os.MILLISECOND, function () end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
    
    -- Update the phone
    local occ = 0
@@ -71,7 +71,7 @@ function updateSMAP()
    print("Updated")
 end
 
-storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP)
+storm.os.invokePeriodically(30 * storm.os.SECOND, updateSMAP)
 
 local last_occupancy_state = false
 storm.os.invokePeriodically(
