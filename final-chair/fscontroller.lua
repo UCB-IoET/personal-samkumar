@@ -7,6 +7,8 @@ rnqcl = RNQC:new(60000)
 --proj_ip = "2001:470:66:3f9::2"
 cbe_ip = "2001:470:39:375::2"
 
+storm.os.invokeLater(10 * storm.os.MINUTE, function () storm.os.reset() end)
+
 server_ip = cbe_ip
 ok = {["rv"] = "ok"}
 function sendActuationMessage(payload, srcip, srcport)
