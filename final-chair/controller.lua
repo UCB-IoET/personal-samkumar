@@ -11,9 +11,11 @@ ChairSettings = require "chairsettings"
 storm.os.invokePeriodically(1213 * storm.os.SECOND, function ()
     local h = heaterSettings
     local f = fanSettings
-    local timediff = storm.n.get_time_diff()
+    local timediff = storm.n.get_time()
     if timediff == nil then
         timediff = 0
+    else
+        timediff = timediff + 3
     end
     storm.n.flash_save_settings(h[storm.n.BACK_HEATER],
                           h[storm.n.BOTTOM_HEATER],
