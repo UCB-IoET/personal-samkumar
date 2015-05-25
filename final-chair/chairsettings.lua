@@ -18,7 +18,16 @@ fans = {storm.n.BOTTOM_FAN, storm.n.BACK_FAN}
 heaters = {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
 
 storm.n.flash_init()
-storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
+storm.n.flash_get_saved_settings(function (backh, bottomh, backf, bottomf, timediff)
+    setHeater(storm.n.BACK_HEATER, backh)
+    setHeater(storm.n.BOTTOM_HEATER, bottomh)
+    setFan(storm.n.BACK_FAN, backf)
+    setFan(storm.n.BOTTOM_FAN, bottomf)
+    storm.n.set_time_diff(timediff)
+    storm.n.flash_save_settings(0, 0, 0, 0, 0, function () -- So it turns off if the user taps the screen
+        storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
+    end)
+end)
 
 for _, heater in pairs(heaters) do
     (function (heater)

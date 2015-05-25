@@ -29,6 +29,74 @@ int flash_init(lua_State* L) {
     lua_setglobal(L, "writearr");
     storm_array_nc_create(L, LOG_ENTRY_LEN, ARR_TYPE_UINT8);
     lua_setglobal(L, "readarr");
+    
+    storm_array_nc_create(L, 5, ARR_TYPE_INT32);
+    lua_setglobal(L, "settingsarr");
+    return 0;
+}
+
+int save_settings(lua_State* L) {
+    lua_getglobal(L, "settingsarr");
+    int arr_index = lua_gettop(L);
+    int i;
+    for (i = 1; i <= 5; i++) {
+        lua_pushlightfunction(L, arr_set);
+        lua_pushvalue(L, arr_index);
+        lua_pushnumber(L, i);
+        lua_pushvalue(L, i);
+        lua_call(L, 3, 0);
+    }
+    
+    lua_pushlightfunction(L, libstorm_flash_write);
+    lua_pushnumber(L, 100);
+    lua_pushvalue(L, arr_index);
+    lua_pushvalue(L, 6); // the callback
+    lua_pushcclosure(L, delay_handler, 1);
+    lua_call(L, 3, 0);
+    return 0;
+}
+
+int get_saved_settings_cb(lua_State* L);
+int get_saved_settings(lua_State* L) {
+    lua_getglobal(L, "settingsarr");
+    int arr_index = lua_gettop(L);
+    lua_pushlightfunction(L, libstorm_flash_read);
+    lua_pushnumber(L, 100);
+    lua_pushvalue(L, arr_index);
+    lua_pushvalue(L, arr_index);
+    lua_pushvalue(L, 1); // the callback
+    lua_pushcclosure(L, get_saved_settings_cb, 2);
+    lua_pushcclosure(L, delay_handler, 1);
+    lua_call(L, 3, 0);
+    return 0;
+}
+
+int get_saved_settings_cb(lua_State* L) {
+    int arr_index = lua_upvalueindex(1);
+    lua_pushvalue(L, lua_upvalueindex(2)); // the callback
+    int i, val;
+    int valid = 1;
+    for (i = 1; i <= 5; i++) {
+        lua_pushlightfunction(L, arr_get);
+        lua_pushvalue(L, arr_index);
+        lua_pushnumber(L, i);
+        lua_call(L, 2, 1);
+        val = lua_tonumber(L, -1);
+        if (val < 0 || val > 100) { // check if something got corrupted
+            valid = 0;
+            break;
+        }
+    }
+    if (!valid) {
+        lua_pop(L, i);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+    }
+    lua_call(L, 5, 0);
+    return 0;
 }
 
 int read_sp_2(lua_State* L);
@@ -322,6 +390,7 @@ int write_log_entry_cleanup(lua_State* L) {
     lua_pushlightfunction(L, write_sp);
     lua_pushnumber(L, new_sp);
     lua_pushvalue(L, lua_upvalueindex(2)); // the callback
+    lua_pushcclosure(L, delay_handler, 1);
     lua_call(L, 2, 0);
     return 0;
 }

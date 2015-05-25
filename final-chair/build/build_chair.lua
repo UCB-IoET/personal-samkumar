@@ -10,8 +10,6 @@ autorun = "personal-samkumar/final-chair/controller.lua" --<< EDIT ME
 -- These are files that will be available as libraries. The name sets how they
 -- are 'require()'ed.
 libs = { --<< EDIT ME
-    cord    = "contrib/lib/cord.lua",
-    stormsh = "contrib/lib/stormsh.lua",
     chairsettings = "personal-samkumar/final-chair/chairsettings.lua"
 }
 

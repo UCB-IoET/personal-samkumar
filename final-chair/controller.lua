@@ -7,6 +7,22 @@ storm.io.set(0, BL_CTL)
 
 ChairSettings = require "chairsettings"
 
+-- Store saved settings in flash and reset
+storm.os.invokePeriodically(1213 * storm.os.SECOND, function ()
+    local h = heaterSettings
+    local f = fanSettings
+    local timediff = storm.n.get_time_diff()
+    if timediff == nil then
+        timediff = 0
+    end
+    storm.n.flash_save_settings(h[storm.n.BACK_HEATER],
+                          h[storm.n.BOTTOM_HEATER],
+                          f[storm.n.BACK_FAN],
+                          f[storm.n.BOTTOM_FAN],
+                          timediff,
+                          storm.os.reset)
+end)
+
 storm.n.enable_reset()
 
 server = storm.n.RNQServer:new(60004, storm.n.actuation_handler)
@@ -14,7 +30,7 @@ server = storm.n.RNQServer:new(60004, storm.n.actuation_handler)
 -- Synchronize time with firestorm every minute
 time_sync = storm.n.RNQClient:new(70000)
 empty = {}
-storm.os.invokePeriodically(storm.os.MINUTE, function ()
+storm.os.invokePeriodically(12 * storm.os.SECOND, function ()
     local send_time = storm.n.get_time_always()
     print("asking for time")
     time_sync:sendMessage(empty,
