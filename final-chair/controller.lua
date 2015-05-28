@@ -29,8 +29,7 @@ storm.n.enable_reset()
 
 server = storm.n.RNQServer:new(60004, storm.n.actuation_handler)
 
--- Synchronize time with firestorm every minute
-time_sync = storm.n.RNQClient:new(70000)
+-- Synchronize time with firestorm
 function time_sync_handler(msg)
     if msg ~= nil and msg.time ~= nil then
         local recv_time = storm.n.get_time_always()

@@ -180,7 +180,7 @@ int read_sp_tail(lua_State* L) {
             sp = 3 << PAGE_EXP;
         }
         lua_pushlightfunction(L, libstorm_os_invoke_later);
-        lua_pushnumber(L, 30 * MILLISECOND_TICKS);
+        lua_pushnumber(L, 70 * MILLISECOND_TICKS);
         lua_pushlightfunction(L, write_sp);
         lua_pushnumber(L, sp);
         lua_pushvalue(L, lua_upvalueindex(1));
