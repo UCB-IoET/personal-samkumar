@@ -53,7 +53,7 @@ chairForwarder = RNQS:new(30002,
                                                          print("Success")
                                                       end
                                                    end)
-                             return {rv = "ok"}
+                             return {["time"] = storm.n.get_time()}  -- Allow chairs to synchronize time with firestorm
                           end)
                                  
 -- Synchronize time with server every 20 seconds
@@ -82,7 +82,7 @@ synctime()
 storm.os.invokePeriodically(20 * storm.os.SECOND, synctime)
     
 -- Allow chairs to synchronize time with firestorm
-synchronizer = RNQS:new(30004, function () print("Got synchronization request") return {["time"] = storm.n.get_time()} end)
+--synchronizer = RNQS:new(30004, function () print("Got synchronization request") return {["time"] = storm.n.get_time()} end)
 
 while true do
     storm.os.wait_callback()

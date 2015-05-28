@@ -59,13 +59,20 @@ function setFan(fan, setting)
    end
 end
     
+local sendHandler = function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end
+local flashHandler = function () print("Logged") end
 
 rnqcl = storm.n.RNQClient:new(30000)
+local entry_table = {}
 function updateSMAP()
    -- Update sMAP
+   local temp
+   local humidity
    temp, humidity = storm.n.get_temp_humidity(storm.n.CELSIUS)
    local pyld = { storm.os.nodeid(), storm.n.check_occupancy(), heaterSettings[storm.n.BACK_HEATER], heaterSettings[storm.n.BOTTOM_HEATER], fanSettings[storm.n.BACK_FAN], fanSettings[storm.n.BOTTOM_FAN], temp, humidity }
-   rnqcl:sendMessage(pyld, "ff02::1", 30002, 150, 180 * storm.os.MILLISECOND, function () end, function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end)
+   
+   send_time = storm.n.get_time_always()
+   rnqcl:sendMessage(pyld, "ff02::1", 30002, 180, 50 * storm.os.MILLISECOND, entry_table, nil, time_sync_handler)
    
    -- Update the phone
    local occ = 0
@@ -76,17 +83,16 @@ function updateSMAP()
    storm.n.bl_PECS_send(strpyld)
    
    -- Log to Flash
-   storm.n.flash_write_log(storm.n.get_time(), pyld[3], pyld[4], pyld[5], pyld[6], temp, humidity, occ, false, function () print("Logged") end)
+   storm.n.flash_write_log(storm.n.get_time(), pyld[3], pyld[4], pyld[5], pyld[6], temp, humidity, occ, false, flashHandler)
    print("Updated")
 end
 
-storm.os.invokePeriodically(30 * storm.os.SECOND, updateSMAP)
+storm.os.invokePeriodically(10 * storm.os.SECOND, updateSMAP)
 
 local last_occupancy_state = false
 storm.os.invokePeriodically(
    3 * storm.os.SECOND,
    function ()
-      print("checking fan")
       local current_state = storm.n.check_occupancy()
       if current_state and not last_occupancy_state then
          for i = 1,#fans do
