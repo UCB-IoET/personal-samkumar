@@ -277,6 +277,11 @@ int handle_tap(lua_State* L) {
     // if count == 4
     if (count == 4) {
         printf("Resetting because of tap sequence\n");
+        //  storm.io.set_mode(storm.io.OUTPUT, HMSOFT_RESET_PIN)
+        lua_pushlightfunction(L, libstorm_io_set_mode);
+        lua_pushnumber(L, 0);  // storm.io.OUTPUT
+        lua_pushnumber(L, HMSOFT_RESET_PIN);
+        lua_call(L, 2, 0);
         // storm.io.set(0, HMSOFT_RESET)
         lua_pushlightfunction(L, libstorm_io_set);
         lua_pushnumber(L, 0);
@@ -303,16 +308,6 @@ int enable_reset(lua_State* L) {
     lua_pushlightfunction(L, libstorm_io_set_mode);
     lua_pushnumber(L, 1);  // storm.io.INPUT
     lua_pushnumber(L, TP_IRQ);
-    lua_call(L, 2, 0);
-    //  storm.io.set_mode(storm.io.OUTPUT, HMSOFT_RESET_PIN)
-    lua_pushlightfunction(L, libstorm_io_set_mode);
-    lua_pushnumber(L, 0);  // storm.io.OUTPUT
-    lua_pushnumber(L, HMSOFT_RESET_PIN);
-    lua_call(L, 2, 0);
-    // storm.io.set(1, HMSOFT_RESET_PIN)
-    lua_pushlightfunction(L, libstorm_io_set);
-    lua_pushnumber(L, 1);
-    lua_pushnumber(L, HMSOFT_RESET_PIN);
     lua_call(L, 2, 0);
     // __reset_counter = 0
     lua_pushnumber(L, 0);
