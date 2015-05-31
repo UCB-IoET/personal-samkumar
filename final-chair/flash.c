@@ -18,25 +18,25 @@ int delay_handler(lua_State* L) {
 
 int flash_init(lua_State* L) {
     storm_array_nc_create(L, 1, ARR_TYPE_INT32);
-    lua_setglobal(L, "r1");
+    lua_setglobal(L, "__r1");
     storm_array_nc_create(L, 1, ARR_TYPE_INT32);
-    lua_setglobal(L, "r2");
+    lua_setglobal(L, "__r2");
     storm_array_nc_create(L, 1, ARR_TYPE_INT32);
-    lua_setglobal(L, "r3");
+    lua_setglobal(L, "__r3");
     storm_array_nc_create(L, 1, ARR_TYPE_INT32);
-    lua_setglobal(L, "w1");
+    lua_setglobal(L, "__w1");
     storm_array_nc_create(L, LOG_ENTRY_LEN, ARR_TYPE_UINT8);
-    lua_setglobal(L, "writearr");
+    lua_setglobal(L, "__writearr");
     storm_array_nc_create(L, LOG_ENTRY_LEN, ARR_TYPE_UINT8);
-    lua_setglobal(L, "readarr");
+    lua_setglobal(L, "__readarr");
     
     storm_array_nc_create(L, 5, ARR_TYPE_INT32);
-    lua_setglobal(L, "settingsarr");
+    lua_setglobal(L, "__settingsarr");
     return 0;
 }
 
 int save_settings(lua_State* L) {
-    lua_getglobal(L, "settingsarr");
+    lua_getglobal(L, "__settingsarr");
     int arr_index = lua_gettop(L);
     int i;
     for (i = 1; i <= 5; i++) {
@@ -58,7 +58,7 @@ int save_settings(lua_State* L) {
 
 int get_saved_settings_cb(lua_State* L);
 int get_saved_settings(lua_State* L) {
-    lua_getglobal(L, "settingsarr");
+    lua_getglobal(L, "__settingsarr");
     int arr_index = lua_gettop(L);
     lua_pushlightfunction(L, libstorm_flash_read);
     lua_pushnumber(L, 100);
@@ -104,7 +104,7 @@ int read_sp_3(lua_State* L);
 int read_sp_tail(lua_State* L);
 // read_sp(cb)
 int read_sp(lua_State* L) {
-    lua_getglobal(L, "r1");
+    lua_getglobal(L, "__r1");
     int arr_index = lua_gettop(L);
     lua_pushlightfunction(L, libstorm_flash_read);
     lua_pushnumber(L, 0 << PAGE_EXP);
@@ -118,7 +118,7 @@ int read_sp(lua_State* L) {
 }
 
 int read_sp_2(lua_State* L) {
-    lua_getglobal(L, "r2");
+    lua_getglobal(L, "__r2");
     int arr_index = lua_gettop(L);
     lua_pushlightfunction(L, libstorm_flash_read);
     lua_pushnumber(L, 1 << PAGE_EXP);
@@ -133,7 +133,7 @@ int read_sp_2(lua_State* L) {
 }
 
 int read_sp_3(lua_State* L) {
-    lua_getglobal(L, "r3");
+    lua_getglobal(L, "__r3");
     int arr_index = lua_gettop(L);
     lua_pushlightfunction(L, libstorm_flash_read);
     lua_pushnumber(L, 2 << PAGE_EXP);
@@ -195,7 +195,7 @@ int write_sp_2(lua_State* L);
 int write_sp_3(lua_State* L);
 int write_sp(lua_State* L) {
     int new_sp = luaL_checkint(L, 1);
-    lua_getglobal(L, "w1");
+    lua_getglobal(L, "__w1");
     int arr_index = lua_gettop(L);
     lua_pushlightfunction(L, arr_set);
     lua_pushvalue(L, arr_index);
@@ -349,7 +349,7 @@ int write_log_entry(lua_State* L) {
     bytes[13] = 0; // extra space
     
     // create array to write
-    lua_getglobal(L, "writearr");
+    lua_getglobal(L, "__writearr");
     arr_index = lua_gettop(L);
     for (i = 0; i < LOG_ENTRY_LEN; i++) {
         lua_pushlightfunction(L, arr_set);
@@ -403,7 +403,7 @@ int read_log_entry(lua_State* L) {
     uint32_t page_offset = index % entries_per_page;
     uint32_t flash_addr = LOG_START + (page << PAGE_EXP) + (page_offset * LOG_ENTRY_LEN);
     
-    lua_getglobal(L, "readarr");
+    lua_getglobal(L, "__readarr");
     int arr_index = lua_gettop(L);
     
     lua_pushlightfunction(L, libstorm_flash_read);
