@@ -54,7 +54,7 @@ storm.os.invokePeriodically(60 * storm.os.SECOND, function ()
     end)]]
 
 storm.n.bl_PECS_init()
-storm.n.bl_PECS_receive_cb_init()
+--storm.n.bl_PECS_receive_cb_init()
 storm.n.bl_PECS_clear_recv_buf()
 
 function handle_bl_msg(bytes)

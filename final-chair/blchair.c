@@ -1,6 +1,7 @@
 #include <interface.h>
 #include "blchair.h"
 
+extern lua_State* _cb_L;
 volatile int32_t bl_receive_flag;
 char bl_receive_buffer[20];
 
@@ -11,14 +12,14 @@ int32_t __attribute__((naked)) k_syscall_ex_ri32(uint32_t id) {
 int32_t __attribute__((naked)) k_syscall_ex_ri32_ccptr_u32(uint32_t id, const char* string, uint32_t len) {
     __syscall_body(ABI_ID_SYSCALL_EX);
 }
-int32_t __attribute__((naked)) k_syscall_ex_ri32_cptr_u32_vi32ptr(uint32_t id, char* buffer, uint32_t len, volatile int32_t* flag) {
+int32_t __attribute__((naked)) k_syscall_ex_ri32_cptr_u32_vi32ptr_vptr(uint32_t id, char* buffer, uint32_t len, volatile int32_t* flag, void* callback) {
     __syscall_body(ABI_ID_SYSCALL_EX);
 }
 
 // Define syscalls for using the PECS Bluetooth
 #define bl_PECS_init_syscall() k_syscall_ex_ri32(0x5700)
 #define bl_PECS_send_syscall(data, len) k_syscall_ex_ri32_ccptr_u32(0x5702, (data), (len))
-#define bl_PECS_receive_syscall(buffer, len, flag) k_syscall_ex_ri32_cptr_u32_vi32ptr(0x5703, (buffer), (len), (flag))
+#define bl_PECS_receive_syscall(buffer, len, flag, cb) k_syscall_ex_ri32_cptr_u32_vi32ptr_vptr(0x5703, (buffer), (len), (flag), (cb))
 #define bl_PECS_clearbuf_syscall() k_syscall_ex_ri32(0x5704)
 
 int do_nothing(lua_State* L) {
@@ -43,41 +44,7 @@ int bl_PECS_send(lua_State* L) {
     return 1;
 }
 
-int bl_PECS_receive_tail(lua_State* L);
-int bl_PECS_receive(lua_State* L) {
-    int toRead = luaL_checkint(L, 1);
-    if (toRead > 20) {
-        return 0;
-    }
-    bl_receive_flag = 0;
-    bl_PECS_receive_syscall(bl_receive_buffer, toRead, &bl_receive_flag);
-    cord_set_continuation(L, bl_PECS_receive_tail, 0);
-    return nc_invoke_sleep(L, 250 * MILLISECOND_TICKS);
-}
-
-int bl_PECS_receive_tail(lua_State* L) {
-    printf("polling\n");
-    if (bl_receive_flag) {
-        lua_pushlstring(L, bl_receive_buffer, bl_receive_flag);
-        printf("got something\n");
-        return cord_return(L, 1);
-    } else {
-        cord_set_continuation(L, bl_PECS_receive_tail, 0);
-        return nc_invoke_sleep(L, 250 * MILLISECOND_TICKS);
-    }
-}
-
-int bl_PECS_receive_tail_cb(lua_State* L);
-// Must be called if you plan to receive using a callback.
-int bl_PECS_receive_cb_init(lua_State* L) {
-    lua_pushlightfunction(L, do_nothing);
-    lua_setglobal(L, "bl_cb");
-    lua_pushlightfunction(L, libstorm_os_invoke_periodically);
-    lua_pushnumber(L, 100 * MILLISECOND_TICKS);
-    lua_pushlightfunction(L, bl_PECS_receive_tail_cb);
-    lua_call(L, 2, 0);
-    return 0;
-}
+void bl_PECS_receive_cb_handler();
 
 int bl_PECS_receive_cb(lua_State* L) {
     int toRead = luaL_checkint(L, 1);
@@ -86,22 +53,25 @@ int bl_PECS_receive_cb(lua_State* L) {
     }
     
     lua_pushvalue(L, 2); // the callback
-    lua_setglobal(L, "bl_cb");
+    lua_setglobal(L, "__bl_cb");
     
     bl_receive_flag = 0;
-    bl_PECS_receive_syscall(bl_receive_buffer, toRead, &bl_receive_flag);
+    bl_PECS_receive_syscall(bl_receive_buffer, toRead, &bl_receive_flag, (void*) bl_PECS_receive_cb_handler);
     
     return 0;
 }
 
-int bl_PECS_receive_tail_cb(lua_State* L) {
-    if (bl_receive_flag) {
-        lua_getglobal(L, "bl_cb"); // the callback
-        lua_pushlstring(L, bl_receive_buffer, bl_receive_flag);
-        bl_receive_flag = 0;
-        lua_call(L, 1, 0);
+void bl_PECS_receive_cb_handler() {
+    int rv;
+    const char* msg;
+    lua_getglobal(_cb_L, "__bl_cb"); // the callback
+    lua_pushlstring(_cb_L, bl_receive_buffer, bl_receive_flag);
+    rv = lua_pcall(_cb_L, 1, 0, 0);
+    if (rv) {
+        printf("[ERROR] could not run bl_PECS callback (%d)\n", rv);
+        msg = lua_tostring(_cb_L, -1);
+        printf("[ERROR] msg: %s\n", msg);
     }
-    return 0;
 }
 
 int bl_PECS_clear_recv_buf(lua_State* L) {
