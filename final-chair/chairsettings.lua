@@ -17,35 +17,6 @@ fans = {storm.n.BOTTOM_FAN, storm.n.BACK_FAN}
 
 heaters = {storm.n.BOTTOM_HEATER, storm.n.BACK_HEATER}
 
-storm.n.flash_init()
-storm.n.flash_get_saved_settings(function (backh, bottomh, backf, bottomf, timediff)
-    setHeater(storm.n.BACK_HEATER, backh)
-    setHeater(storm.n.BOTTOM_HEATER, bottomh)
-    setFan(storm.n.BACK_FAN, backf)
-    setFan(storm.n.BOTTOM_FAN, bottomf)
-    storm.n.set_time_diff(timediff)
-    storm.n.flash_save_settings(0, 0, 0, 0, 0, function () -- So it turns off if the user taps the screen
-        storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
-    end)
-end)
-
-for _, heater in pairs(heaters) do
-    (function (heater)
-        storm.os.invokePeriodically(storm.os.SECOND, function ()
-            local setting = 10 * heaterSettings[heater] * storm.os.MILLISECOND
-            if not storm.n.check_occupancy() then
-                setting = 0
-            end
-            if setting > 0 then
-                storm.n.set_heater_state(heater, storm.n.ON)
-            end
-            if setting < storm.os.SECOND then
-                storm.os.invokeLater(setting, storm.n.set_heater_state, heater, storm.n.OFF)
-            end
-        end)
-    end)(heater)
-end
-
 -- SETTING is from 0 to 100
 function setHeater(heater, setting)
    heaterSettings[heater] = setting
@@ -58,12 +29,41 @@ function setFan(fan, setting)
          storm.n.set_fan_state(fan, storm.n.quantize_fan(setting))
    end
 end
-    
+
+storm.n.flash_init()
+storm.n.flash_get_saved_settings(function (backh, bottomh, backf, bottomf, timediff)
+    setHeater(storm.n.BACK_HEATER, backh)
+    setHeater(storm.n.BOTTOM_HEATER, bottomh)
+    setFan(storm.n.BACK_FAN, backf)
+    setFan(storm.n.BOTTOM_FAN, bottomf)
+    storm.n.set_time_diff(timediff)
+    storm.n.flash_save_settings(0, 0, 0, 0, 0, function () -- So it turns off if the user taps the screen
+        storm.n.flash_write_log(nil, 0, 0, 0, 0, 0, 0, 0, true, function () print("Logging reboot") end)
+    end)
+end)
+
+function modulateHeater(heater)
+    storm.os.invokePeriodically(storm.os.SECOND, function ()
+        local setting = 10 * heaterSettings[heater] * storm.os.MILLISECOND
+        if not storm.n.check_occupancy() then
+            setting = 0
+        end
+        if setting > 0 then
+            storm.n.set_heater_state(heater, storm.n.ON)
+        end
+        if setting < storm.os.SECOND then
+            storm.os.invokeLater(setting, storm.n.set_heater_state, heater, storm.n.OFF)
+        end
+    end)
+end
+
+for _, heater in pairs(heaters) do
+    modulateHeater(heater)
+end
+
 local sendHandler = function (message) if message ~= nil then print("Success!") else print("15.4 Failed") end end
---local flashHandler = function () print("Logged") end
 
 rnqcl = storm.n.RNQClient:new(30000)
-local entry_table = {}
 function updateSMAP()
    -- Update sMAP
    local temp
@@ -85,7 +85,7 @@ function updateSMAP()
    storm.n.flash_write_log(storm.n.get_time(), pyld[3], pyld[4], pyld[5], pyld[6], temp, humidity, occ, false,
        function ()
            print("Logged")
-           rnqcl:sendMessage(pyld, "ff02::1", 30002, 175, 100 * storm.os.MILLISECOND, entry_table, nil, time_sync_handler)
+           rnqcl:sendMessage(pyld, "ff02::1", 30002, 175, 100 * storm.os.MILLISECOND, nil, time_sync_handler)
        end)
    print("Updated")
 end
@@ -94,7 +94,7 @@ storm.os.invokePeriodically(20 * storm.os.SECOND, updateSMAP)
 
 local last_occupancy_state = false
 storm.os.invokePeriodically(
-   3 * storm.os.SECOND,
+   storm.os.SECOND,
    function ()
       local current_state = storm.n.check_occupancy()
       if current_state and not last_occupancy_state then

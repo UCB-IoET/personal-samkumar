@@ -114,4 +114,5 @@ int libstorm_os_reset(lua_State* L);
     { LSTRKEY( "quantize_fan"), LFUNCVAL( quantize_fan ) }, \
     { LSTRKEY( "set_temp_mode"), LFUNCVAL( set_temp_mode ) }, \
     { LSTRKEY( "get_temp_humidity" ), LFUNCVAL( lua_get_temp_humidity ) }, \
-    { LSTRKEY( "enable_reset" ), LFUNCVAL( enable_reset ) },
+    { LSTRKEY( "enable_reset" ), LFUNCVAL( enable_reset ) }, \
+    { LSTRKEY( "gcbytes" ), LFUNCVAL( gcbytes ) },

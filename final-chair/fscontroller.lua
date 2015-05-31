@@ -7,7 +7,13 @@ rnqcl = RNQC:new(60000)
 --proj_ip = "2001:470:66:3f9::2"
 cbe_ip = "2001:470:39:375::2"
 
-storm.os.invokeLater(10 * storm.os.MINUTE, function () storm.os.reset() end)
+storm.os.invokeLater(5 * storm.os.MINUTE, function () storm.os.reset() end)
+
+storm.os.invokePeriodically(10 * storm.os.SECOND, function ()
+    collectgarbage("collect")
+    print("Using " .. gcinfo())
+    print("Bytes " .. storm.n.gcbytes())
+end)
 
 server_ip = cbe_ip
 ok = {["rv"] = "ok"}
@@ -20,7 +26,6 @@ function sendActuationMessage(payload, srcip, srcport)
                      60004,
                      180,
                      100 * storm.os.MILLISECOND,
-                     nil,
                      function ()
                         print("trying")
                      end,
@@ -49,7 +54,6 @@ chairForwarder = RNQS:new(30002,
                                                    100,
                                                    100 * storm.os.MILLISECOND,
                                                    nil,
-                                                   nil,
                                                    function (msg)
                                                       if msg ~= nil then
                                                          print("Success")
@@ -69,7 +73,6 @@ function synctime()
                           38002,
                           100,
                           100 * storm.os.MILLISECOND,
-                          nil,
                           nil,
                           function (msg)
                              if msg ~= nil then

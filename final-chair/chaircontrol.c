@@ -330,3 +330,10 @@ int enable_reset(lua_State* L) {
     lua_call(L, 3, 0);
     return 0;
 }
+
+int gcbytes(lua_State* L) {
+    int kbytes = lua_gc(L, LUA_GCCOUNT, 0);
+    int bytes = lua_gc(L, LUA_GCCOUNTB, 0);
+    lua_pushnumber(L, (kbytes << 10) | bytes);
+    return 1;
+}
